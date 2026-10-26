@@ -227,6 +227,48 @@
       color: var(--gta-amarillo);
     }
 
+    #busqueda {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 16px;
+    }
+
+    .busqueda-fila {
+      display: flex;
+      gap: 6px;
+    }
+
+    .busqueda-fila input {
+      padding: 8px 10px;
+      border: 1px solid var(--gta-rosa);
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--gta-texto);
+      font-size: 15px;
+    }
+
+    .busqueda-fila input:focus {
+      outline: none;
+      border-color: var(--gta-turquesa);
+      box-shadow: 0 0 8px var(--gta-turquesa);
+    }
+
+    .busqueda-fila button {
+      padding: 8px 16px;
+      border: 2px solid var(--gta-turquesa);
+      border-radius: 999px;
+      background: transparent;
+      color: var(--gta-turquesa);
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .busqueda-fila button:hover {
+      background: var(--gta-turquesa);
+      color: var(--gta-noche);
+    }
+
     #productos {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
@@ -399,6 +441,19 @@
   <!-- READ del CRUD: cada producto de la tabla se muestra como una card -->
   <section id="seccion-productos">
     <button id="btn-ver">Ver productos</button>
+
+    <!-- Búsquedas: un producto por su id, o varios por su nombre -->
+    <div id="busqueda">
+      <div class="busqueda-fila">
+        <input id="buscar-id" type="number" min="1" step="1" placeholder="Id del producto">
+        <button id="btn-buscar-id">Buscar por id</button>
+      </div>
+      <div class="busqueda-fila">
+        <input id="buscar-nombre" type="text" placeholder="Nombre o parte del nombre">
+        <button id="btn-buscar-nombre">Buscar por nombre</button>
+      </div>
+    </div>
+
     <p id="mensaje-productos"></p>
     <div id="productos"></div>
   </section>

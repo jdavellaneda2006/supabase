@@ -206,6 +206,56 @@ async function mostrarProductos() {
 
 document.getElementById('btn-ver').addEventListener('click', mostrarProductos);
 
+// ===== Buscar productos =====
+// Los botones usan buscarProductoPorId y buscarProductosPorNombre,
+// definidas al final de este archivo.
+
+document.getElementById('btn-buscar-id').addEventListener('click', async () => {
+  const contenedor = document.getElementById('productos');
+  const mensaje = document.getElementById('mensaje-productos');
+  const id = Number(document.getElementById('buscar-id').value);
+
+  if (!Number.isInteger(id) || id < 1) {
+    mensaje.textContent = 'Escribe un id válido.';
+    return;
+  }
+
+  // buscarProductoPorId devuelve null si no encuentra el producto.
+  const producto = await buscarProductoPorId(id);
+
+  if (!producto) {
+    mensaje.textContent = 'No existe un producto con id: ' + id;
+    contenedor.innerHTML = '';
+    return;
+  }
+
+  mensaje.textContent = 'Producto con id: ' + id;
+  contenedor.innerHTML = crearCard(producto);
+});
+
+document.getElementById('btn-buscar-nombre').addEventListener('click', async () => {
+  const contenedor = document.getElementById('productos');
+  const mensaje = document.getElementById('mensaje-productos');
+  const nombre = document.getElementById('buscar-nombre').value.trim();
+
+  if (!nombre) {
+    mensaje.textContent = 'Escribe un nombre para buscar.';
+    return;
+  }
+
+  // buscarProductosPorNombre devuelve [] si no encuentra nada.
+  const productos = await buscarProductosPorNombre(nombre);
+
+  if (productos.length === 0) {
+    mensaje.textContent = 'No hay productos con "' + nombre + '" en el nombre.';
+    contenedor.innerHTML = '';
+    return;
+  }
+
+  mensaje.textContent = productos.length + ' resultado(s) para "' + nombre + '"';
+  contenedor.innerHTML = productos.map(crearCard).join('');
+});
+
 //espacio para formulario de agregar producto
 document.getElementById('form-producto').addEventListener('submit', async (evento) => {
   // Sin esto el navegador recarga la página al enviar el formulario.
@@ -256,3 +306,30 @@ document.getElementById('form-producto').addEventListener('submit', async (event
   document.getElementById('btn-traer').click();
   mostrarProductos();
 });
+
+
+// AHORA:
+async function buscarProductoPorId(id) {
+  const { data, error } = await db
+    .from('productos_practica')
+    .select('*')
+    .eq('id', id)    // eq = "equal" (igual a) — equivalente a find(p => p.id === id)
+    .single();         // single() = "espero exactamente una fila, dámela
+                        // como objeto, no como array de un elemento"
+
+  if (error) return null;
+  return data;
+}
+
+async function buscarProductosPorNombre(texto) {
+  const { data, error } = await db
+    .from('productos_practica')
+    .select('*')
+    .ilike('Nombre', `%${texto}%`);   // "Nombre" con N mayúscula, como en la tabla
+    // ilike = "like" insensible a mayúsculas/minúsculas.
+    // los símbolos % significan "cualquier texto antes/después" —
+    // equivalente a .toLowerCase().includes(texto)
+
+  if (error) return [];
+  return data;
+}
