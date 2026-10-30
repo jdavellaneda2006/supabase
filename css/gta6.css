@@ -520,3 +520,129 @@ li::before {
 #modal-eliminar { border-color: var(--rosa); box-shadow: 0 0 30px rgba(255, 46, 136, 0.7); }
 #modal-eliminar p { margin: 0 0 6px; }
 #modal-eliminar .modal-botones button[type="submit"] { background: var(--rosa); }
+
+/* ===== Jerarquía de la página: encabezado, menú y secciones ===== */
+
+html { scroll-behavior: smooth; }   /* el menú se desplaza suave hasta cada sección */
+
+.encabezado,
+main {
+  width: 100%;
+  max-width: 1100px;
+}
+
+/* Menú de navegación */
+.menu {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+}
+
+.menu a {
+  padding: 8px 18px;
+  font-family: 'Anton', sans-serif;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  text-decoration: none;
+  color: var(--texto);
+  background: rgba(26, 11, 46, 0.75);
+  border: 2px solid var(--turquesa);
+  border-radius: 999px;
+}
+
+.menu a:hover { color: var(--azul-noche); background: var(--turquesa); }
+
+main {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+/* Cada sección es un bloque con su título y su contenido */
+.seccion {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 22px;
+  background: rgba(26, 11, 46, 0.45);
+  border-left: 6px solid var(--rosa);
+  border-radius: 12px;
+  scroll-margin-top: 20px;   /* deja aire arriba al saltar desde el menú */
+}
+
+#sec-buscar { border-left-color: var(--turquesa); }
+#sec-catalogo { border-left-color: var(--naranja); }
+#sec-resumen { border-left-color: var(--amarillo); }
+
+/* Títulos de sección (h2) y de columna (h3) */
+.seccion h2 {
+  width: 100%;
+  margin: 0;
+  font-family: 'Anton', sans-serif;
+  font-size: clamp(1.6rem, 4vw, 2.2rem);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--texto);
+  text-shadow: 3px 3px 0 var(--azul-noche);
+}
+
+.seccion h2 .num {
+  margin-right: 8px;
+  color: var(--amarillo);
+}
+
+.seccion h3 {
+  margin: 0 0 8px;
+  font-family: 'Anton', sans-serif;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+/* Dentro de una sección, los bloques ocupan todo el ancho disponible */
+.seccion #form-agregar,
+.seccion #resultado-busqueda,
+.seccion #lista-productos,
+.seccion #resultado {
+  max-width: none;
+}
+
+/* Los dos buscadores, lado a lado */
+.buscadores {
+  width: 100%;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.buscadores #form-buscar-id,
+.buscadores #form-buscar-nombre { max-width: none; }
+
+/* Resumen: tres columnas (nombres, precios, descuentos) */
+.resumen {
+  width: 100%;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+}
+
+.resumen #resultado2,
+.resumen #resultado3,
+.resumen #resultado4 {
+  max-width: none;
+}
+
+.resumen-col:nth-child(1) h3 { color: var(--rosa); }
+.resumen-col:nth-child(2) h3 { color: var(--naranja); }
+.resumen-col:nth-child(3) h3 { color: var(--amarillo); }
+
+/* Mientras no se hayan traído productos, se muestra la pista en lugar
+   de las tres columnas vacías */
+.resumen:has(#resultado2:empty) { display: none; }
+.seccion:has(#resultado2:not(:empty)) .pista { display: none; }
+
+.pista {
+  margin: 0;
+  color: rgba(255, 244, 230, 0.75);
+}
