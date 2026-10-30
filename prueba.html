@@ -14,39 +14,82 @@
 </head>
 <body>
 
-  <h1>Productos<span>Vice City Edition</span></h1>
+  <!-- ===== Encabezado ===== -->
+  <header class="encabezado">
+    <h1>Productos<span>Vice City Edition</span></h1>
+    <!-- Menú: cada enlace salta a la sección con ese id -->
+    <nav class="menu">
+      <a href="#sec-agregar">Agregar</a>
+      <a href="#sec-buscar">Buscar</a>
+      <a href="#sec-catalogo">Catálogo</a>
+      <a href="#sec-resumen">Resumen</a>
+    </nav>
+  </header>
 
-  <!-- Formulario para agregarProducto() en prueba.js -->
-  <form id="form-agregar">
-    <input id="input-nombre" type="text" placeholder="Nombre" required>
-    <input id="input-descripcion" type="text" placeholder="Descripción">
-    <input id="input-precio" type="number" placeholder="Precio" min="0" step="any" required>
-    <input id="input-unidades" type="number" placeholder="Unidades" min="0" step="1" required>
-    <input id="input-descuento" type="number" placeholder="Descuento %" min="0" max="100" step="any">
-    <button type="submit">Agregar producto</button>
-  </form>
-  <div id="notificacion"></div>
+  <main>
 
-  <!-- Formularios para buscarProductoPorId() y buscarProductosPorNombre() -->
-  <form id="form-buscar-id">
-    <input id="input-buscar-id" type="number" placeholder="Buscar por ID" min="1" required>
-    <button type="submit">Buscar</button>
-  </form>
-  <form id="form-buscar-nombre">
-    <input id="input-buscar-nombre" type="text" placeholder="Buscar por nombre" required>
-    <button type="submit">Buscar</button>
-  </form>
-  <div id="resultado-busqueda"></div>
+    <!-- ===== 1. Agregar producto: agregarProducto() ===== -->
+    <section id="sec-agregar" class="seccion">
+      <h2><span class="num">01</span> Agregar producto</h2>
+      <form id="form-agregar">
+        <input id="input-nombre" type="text" placeholder="Nombre" required>
+        <input id="input-descripcion" type="text" placeholder="Descripción">
+        <input id="input-precio" type="number" placeholder="Precio" min="0" step="any" required>
+        <input id="input-unidades" type="number" placeholder="Unidades" min="0" step="1" required>
+        <input id="input-descuento" type="number" placeholder="Descuento %" min="0" max="100" step="any">
+        <button type="submit">Agregar producto</button>
+      </form>
+      <div id="notificacion"></div>
+    </section>
 
-  <div id="notificacion-mod"></div>
+    <!-- ===== 2. Buscar: buscarProductoPorId() y buscarProductosPorNombre() ===== -->
+    <section id="sec-buscar" class="seccion">
+      <h2><span class="num">02</span> Buscar productos</h2>
+      <div class="buscadores">
+        <form id="form-buscar-id">
+          <input id="input-buscar-id" type="number" placeholder="Buscar por ID" min="1" required>
+          <button type="submit">Buscar</button>
+        </form>
+        <form id="form-buscar-nombre">
+          <input id="input-buscar-nombre" type="text" placeholder="Buscar por nombre" required>
+          <button type="submit">Buscar</button>
+        </form>
+      </div>
+      <div id="resultado-busqueda"></div>
+    </section>
 
-  <button id="btn-traer">Traer productos</button>
-  <div id="resultado"></div>
-  <!-- Lista de productos con botón "Editar" (abre el modal) -->
-  <div id="lista-productos"></div>
-   <div id="resultado2"></div>
-   <div id="resultado3"></div>
-   <div id="resultado4"></div>
+    <!-- ===== 3. Catálogo: cargarProductos(), con Editar y Eliminar en cada card ===== -->
+    <section id="sec-catalogo" class="seccion">
+      <h2><span class="num">03</span> Catálogo</h2>
+      <button id="btn-traer">Traer productos</button>
+      <!-- Avisos de editar / eliminar -->
+      <div id="notificacion-mod"></div>
+      <!-- Solo muestra texto si la consulta falla -->
+      <div id="resultado"></div>
+      <div id="lista-productos"></div>
+    </section>
+
+    <!-- ===== 4. Resumen: listas de nombres, precios y descuentos ===== -->
+    <section id="sec-resumen" class="seccion">
+      <h2><span class="num">04</span> Resumen</h2>
+      <p class="pista">Pulsa "Traer productos" en el catálogo para ver el resumen.</p>
+      <div class="resumen">
+        <div class="resumen-col">
+          <h3>Nombres</h3>
+          <div id="resultado2"></div>
+        </div>
+        <div class="resumen-col">
+          <h3>Precios</h3>
+          <div id="resultado3"></div>
+        </div>
+        <div class="resumen-col">
+          <h3>Descuentos</h3>
+          <div id="resultado4"></div>
+        </div>
+      </div>
+    </section>
+
+  </main>
 
   <!-- Modal para modificarProducto(): <dialog> es un elemento nativo de
        HTML que ya sabe abrirse encima de la página (showModal()) y
