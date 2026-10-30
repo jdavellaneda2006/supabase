@@ -279,48 +279,6 @@ li::before {
 
 #resultado-busqueda:empty { display: none; }
 
-/* Formulario de modificar: reutiliza el aspecto del de agregar */
-#form-modificar {
-  width: 100%;
-  max-width: 900px;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  padding: 18px;
-  background: rgba(26, 11, 46, 0.75);
-  border: 2px solid var(--naranja);
-  border-radius: 10px;
-  box-shadow: 0 0 18px rgba(255, 138, 61, 0.6);
-}
-
-#form-modificar input {
-  flex: 1 1 140px;
-  padding: 12px;
-  font-family: 'Montserrat', sans-serif;
-  font-size: 1rem;
-  color: var(--texto);
-  background: rgba(255, 255, 255, 0.08);
-  border: 2px solid var(--naranja);
-  border-radius: 6px;
-}
-
-#form-modificar input::placeholder { color: rgba(255, 244, 230, 0.6); }
-
-#form-modificar button {
-  flex: 1 1 160px;
-  padding: 12px;
-  font-family: 'Anton', sans-serif;
-  font-size: 1.1rem;
-  letter-spacing: 1px;
-  text-transform: uppercase;
-  color: var(--azul-noche);
-  background: var(--naranja);
-  border: 2px solid var(--azul-noche);
-  border-radius: 6px;
-  box-shadow: 4px 4px 0 var(--azul-noche);
-  cursor: pointer;
-}
-
 #notificacion-mod {
   width: 100%;
   text-align: center;
@@ -329,3 +287,114 @@ li::before {
 }
 
 #notificacion-mod:empty { display: none; }
+
+/* Lista de productos con botón Editar */
+#lista-productos {
+  width: 100%;
+  max-width: 900px;
+  padding: 18px 22px;
+  background: rgba(26, 11, 46, 0.75);
+  border: 2px solid var(--rosa);
+  border-radius: 10px;
+  box-shadow: 0 0 18px rgba(255, 46, 136, 0.6);
+}
+
+#lista-productos:empty { display: none; }
+
+#lista-productos li,
+#resultado-busqueda li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.btn-editar {
+  flex-shrink: 0;
+  padding: 6px 14px;
+  font-family: 'Anton', sans-serif;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--azul-noche);
+  background: var(--naranja);
+  border: 2px solid var(--azul-noche);
+  border-radius: 6px;
+  box-shadow: 3px 3px 0 var(--azul-noche);
+  cursor: pointer;
+}
+
+.btn-editar:hover { box-shadow: 3px 3px 0 var(--azul-noche), 0 0 14px var(--naranja); }
+
+/* Modal de edición (<dialog>) */
+#modal-editar {
+  width: min(480px, calc(100% - 32px));
+  padding: 24px;
+  color: var(--texto);
+  background: linear-gradient(160deg, var(--azul-noche), var(--morado));
+  border: 2px solid var(--naranja);
+  border-radius: 12px;
+  box-shadow: 0 0 30px rgba(255, 138, 61, 0.7);
+}
+
+/* Fondo oscuro detrás del modal */
+#modal-editar::backdrop {
+  background: rgba(26, 11, 46, 0.7);
+  backdrop-filter: blur(3px);
+}
+
+#modal-editar h2 {
+  margin: 0 0 16px;
+  font-family: 'Anton', sans-serif;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--amarillo);
+}
+
+#form-editar label {
+  display: block;
+  margin-bottom: 12px;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+#form-editar input {
+  display: block;
+  width: 100%;
+  margin-top: 4px;
+  padding: 10px;
+  font-family: 'Montserrat', sans-serif;
+  font-size: 1rem;
+  color: var(--texto);
+  background: rgba(255, 255, 255, 0.08);
+  border: 2px solid var(--rosa);
+  border-radius: 6px;
+}
+
+#form-editar input:focus { outline: none; box-shadow: 0 0 12px var(--rosa); }
+
+.modal-botones {
+  display: flex;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.modal-botones button {
+  flex: 1;
+  padding: 12px;
+  font-family: 'Anton', sans-serif;
+  font-size: 1.05rem;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  border: 2px solid var(--azul-noche);
+  border-radius: 6px;
+  box-shadow: 4px 4px 0 var(--azul-noche);
+  cursor: pointer;
+}
+
+.modal-botones button[type="submit"] { color: var(--azul-noche); background: var(--naranja); }
+#btn-cancelar { color: var(--texto); background: transparent; border-color: var(--texto); }
+
+/* El texto ocupa el espacio libre, así la estrella queda pegada a él
+   y el botón se va a la derecha */
+#lista-productos li span,
+#resultado-busqueda li span { flex: 1; }

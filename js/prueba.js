@@ -1,4 +1,6 @@
-document.getElementById('btn-traer').addEventListener('click', async () => {
+// La lectura de productos ahora es una función con nombre, para poder
+// volver a llamarla después de editar un producto (y refrescar la lista)
+async function cargarProductos() {
 
   // Mismo "async" que en el Paso 2: esta función necesita "await" para
   // esperar la respuesta real de Supabase antes de seguir.
@@ -34,7 +36,24 @@ document.getElementById('btn-traer').addEventListener('click', async () => {
     '<ul>' + precios.map(n => `<li>${n}</li>`).join('') + '</ul>';
   document.getElementById('resultado4').innerHTML =
     '<ul>' + descuentos.map(d => `<li>${d}</li>`).join('') + '</ul>';
-});
+
+  // Lista completa, con un botón "Editar" por producto
+  document.getElementById('lista-productos').innerHTML =
+    '<ul>' + data.map(filaProducto).join('') + '</ul>';
+}
+
+document.getElementById('btn-traer').addEventListener('click', cargarProductos);
+
+// Arma el <li> de un producto con su botón "Editar". El botón guarda el id
+// en data-id para saber qué producto abrir en el modal.
+// (?? '—' muestra una raya si el campo viene null en la tabla)
+function filaProducto(p) {
+  const descuento = p.descuento == null ? '—' : Math.round(p.descuento * 100) + '%';
+  return `<li>
+    <span>#${p.id} — ${p.Nombre} — $${p.precio} (descuento: ${descuento}) — ${p.unidades ?? '—'} unidades</span>
+    <button class="btn-editar" data-id="${p.id}">Editar</button>
+  </li>`;
+}
 // ANTES (si lo hubieras hecho con localStorage, como en la semana 7):
 // (queda comentado: usa siguienteId, productos y guardarProductos, que no
 //  existen en este proyecto, y se llama igual que la versión de Supabase)
@@ -142,9 +161,7 @@ function mostrarBusqueda(lista) {
     div.innerText = 'No se encontraron productos.';
     return;
   }
-  div.innerHTML = '<ul>' + lista.map(p =>
-    `<li>#${p.id} — ${p.Nombre} — $${p.precio} (descuento: ${p.descuento * 100}%) — ${p.unidades} unidades</li>`
-  ).join('') + '</ul>';
+  div.innerHTML = '<ul>' + lista.map(filaProducto).join('') + '</ul>';
 }
 
 document.getElementById('form-buscar-id').addEventListener('submit', async (evento) => {
@@ -186,39 +203,67 @@ async function modificarProducto(id, cambios) {
   if (error) return null;
   return data[0];
 }
-document.getElementById('form-modificar').addEventListener('submit', async (evento) => {
-  evento.preventDefault();
-  const id = Number(document.getElementById('input-mod-id').value);
 
-  // Solo metemos en "cambios" los campos que el usuario llenó, para que
-  // update() no borre los demás valores de la fila
-  const cambios = {};
-  const nombre = document.getElementById('input-mod-nombre').value;
-  const precio = document.getElementById('input-mod-precio').value;
-  const unidades = document.getElementById('input-mod-unidades').value;
-  const descuento = document.getElementById('input-mod-descuento').value;
+// ===== Modal de edición =====
+const modal = document.getElementById('modal-editar');
 
-  if (nombre !== '') cambios.Nombre = nombre;
-  if (precio !== '') cambios.precio = Number(precio);
-  if (unidades !== '') {
-    cambios.unidades = Number(unidades);
-    cambios.disponible = Number(unidades) > 0;
-  }
-  if (descuento !== '') cambios.descuento = Number(descuento) / 100;   // % → fracción
-
-  const aviso = document.getElementById('notificacion-mod');
-  if (Object.keys(cambios).length === 0) {
-    aviso.innerText = 'Escribe al menos un campo para modificar.';
+// Abre el modal con los datos ACTUALES del producto (los pide a Supabase
+// con buscarProductoPorId, así no editas datos viejos)
+async function abrirModalEditar(id) {
+  const producto = await buscarProductoPorId(id);
+  if (!producto) {
+    document.getElementById('notificacion-mod').innerText = 'No se encontró el producto #' + id + '.';
     return;
   }
 
+  document.getElementById('modal-titulo-id').innerText = '#' + producto.id;
+  document.getElementById('edit-id').value = producto.id;
+  document.getElementById('edit-nombre').value = producto.Nombre ?? '';
+  document.getElementById('edit-descripcion').value = producto.descripcion ?? '';
+  document.getElementById('edit-precio').value = producto.precio ?? '';
+  document.getElementById('edit-unidades').value = producto.unidades ?? '';
+  // En la tabla el descuento es fracción (0.1); en el modal se ve como % (10)
+  document.getElementById('edit-descuento').value =
+    producto.descuento == null ? '' : Math.round(producto.descuento * 100);
+
+  modal.showModal();   // showModal() lo abre encima de todo y oscurece el fondo
+}
+
+// Un solo listener para TODOS los botones "Editar", aunque se creen después
+// con innerHTML: escuchamos los clics en el documento y revisamos si el
+// clic fue en un .btn-editar (esto se llama "delegación de eventos")
+document.addEventListener('click', (evento) => {
+  const boton = evento.target.closest('.btn-editar');
+  if (boton) abrirModalEditar(Number(boton.dataset.id));
+});
+
+document.getElementById('btn-cancelar').addEventListener('click', () => modal.close());
+
+document.getElementById('form-editar').addEventListener('submit', async (evento) => {
+  evento.preventDefault();
+  const id = Number(document.getElementById('edit-id').value);
+  const unidades = Number(document.getElementById('edit-unidades').value);
+
+  // Como el modal ya trae todos los valores cargados, mandamos todos los campos
+  const cambios = {
+    Nombre: document.getElementById('edit-nombre').value,
+    descripcion: document.getElementById('edit-descripcion').value,
+    precio: Number(document.getElementById('edit-precio').value),
+    unidades: unidades,
+    descuento: Number(document.getElementById('edit-descuento').value) / 100,   // % → fracción
+    disponible: unidades > 0
+  };
+
   const actualizado = await modificarProducto(id, cambios);
+  const aviso = document.getElementById('notificacion-mod');
 
   // Si ningún id coincide, Supabase no da error: devuelve un array vacío
   // y data[0] queda undefined — por eso basta con revisar "actualizado"
   if (actualizado) {
     aviso.innerText = 'Producto #' + actualizado.id + ' modificado: ' + actualizado.Nombre;
-    evento.target.reset();
+    modal.close();
+    cargarProductos();   // refresca la lista con los datos nuevos
+    document.getElementById('resultado-busqueda').innerHTML = '';   // la búsqueda quedó desactualizada
   } else {
     aviso.innerText = 'No se pudo modificar el producto #' + id + '.';
   }
