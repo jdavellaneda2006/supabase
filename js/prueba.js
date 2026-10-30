@@ -4,7 +4,7 @@ async function cargarProductos() {
 
   // Mismo "async" que en el Paso 2: esta función necesita "await" para
   // esperar la respuesta real de Supabase antes de seguir.
-  const { data, error } = await db.from('productos_practica').select('*');
+  const { data, error } = await db.from('productos_practica').select('*').order('id');
   // ↑ El código se DETIENE en esta línea hasta que la base de datos
   //   responde. Compáralo con localStorage.getItem('productos'): esa
   //   llamada te devuelve el valor guardado EN EL MISMO INSTANTE, sin
@@ -37,22 +37,76 @@ async function cargarProductos() {
   document.getElementById('resultado4').innerHTML =
     '<ul>' + descuentos.map(d => `<li>${d}</li>`).join('') + '</ul>';
 
-  // Lista completa, con un botón "Editar" por producto
+  // Cards de todos los productos, cada una con su botón "Editar"
   document.getElementById('lista-productos').innerHTML =
-    '<ul>' + data.map(filaProducto).join('') + '</ul>';
+    '<div class="grid-cards">' + data.map(crearCard).join('') + '</div>';
 }
 
 document.getElementById('btn-traer').addEventListener('click', cargarProductos);
 
-// Arma el <li> de un producto con su botón "Editar". El botón guarda el id
+// ===== Cards de productos (traídas de la versión del 26 de octubre) =====
+
+// Evita que un texto de la tabla (ej. un nombre con "<") se interprete como
+// HTML al meterlo con innerHTML
+function escaparHTML(texto) {
+  return String(texto ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+function formatearPrecio(valor) {
+  return Number(valor).toLocaleString('es-CO', {
+    style: 'currency',
+    currency: 'COP',
+    maximumFractionDigits: 0
+  });
+}
+
+// Arma la card de un producto con su botón "Editar". El botón guarda el id
 // en data-id para saber qué producto abrir en el modal.
-// (?? '—' muestra una raya si el campo viene null en la tabla)
-function filaProducto(p) {
-  const descuento = p.descuento == null ? '—' : Math.round(p.descuento * 100) + '%';
-  return `<li>
-    <span>#${p.id} — ${p.Nombre} — $${p.precio} (descuento: ${descuento}) — ${p.unidades ?? '—'} unidades</span>
-    <button class="btn-editar" data-id="${p.id}">Editar</button>
-  </li>`;
+function crearCard(producto) {
+  const descuento = Number(producto.descuento) || 0;
+  const precioFinal = producto.precio * (1 - descuento);
+
+  const tieneImagen = /^https?:\/\//.test(producto.image_url || '');
+  const imagen = tieneImagen
+    ? `<img src="${escaparHTML(producto.image_url)}" alt="${escaparHTML(producto.Nombre)}">`
+    : `<div class="card-sin-imagen">Sin imagen</div>`;
+
+  const etiquetaDescuento = descuento > 0
+    ? `<span class="card-descuento">-${Math.round(descuento * 100)}%</span>`
+    : '';
+
+  const precio = descuento > 0
+    ? `<s>${formatearPrecio(producto.precio)}</s>${formatearPrecio(precioFinal)}`
+    : formatearPrecio(producto.precio);
+
+  const categorias = (producto.categoria || [])
+    .map(c => `<span>${escaparHTML(c)}</span>`)
+    .join('');
+
+  const estado = producto.disponible
+    ? '<span class="disponible">● Disponible</span>'
+    : '<span class="agotado">● Agotado</span>';
+
+  return `
+    <article class="card">
+      <div class="card-imagen">${imagen}${etiquetaDescuento}</div>
+      <div class="card-cuerpo">
+        <h3>#${producto.id} ${escaparHTML(producto.Nombre)}</h3>
+        ${producto.descripcion ? `<p class="card-descripcion">${escaparHTML(producto.descripcion)}</p>` : ''}
+        <div class="card-categorias">${categorias}</div>
+        <div class="card-precio">${precio}</div>
+        <div class="card-pie">
+          ${estado}
+          <span>${producto.unidades ?? 0} unidades</span>
+        </div>
+        <button class="btn-editar" data-id="${producto.id}">Editar</button>
+      </div>
+    </article>`;
 }
 // ANTES (si lo hubieras hecho con localStorage, como en la semana 7):
 // (queda comentado: usa siguienteId, productos y guardarProductos, que no
@@ -154,14 +208,14 @@ async function buscarProductosPorNombre(texto) {
   return data;
 }
 
-// Convierte una lista de productos en <li> para mostrarla en pantalla
+// Convierte una lista de productos en cards para mostrarla en pantalla
 function mostrarBusqueda(lista) {
   const div = document.getElementById('resultado-busqueda');
   if (lista.length === 0) {
     div.innerText = 'No se encontraron productos.';
     return;
   }
-  div.innerHTML = '<ul>' + lista.map(filaProducto).join('') + '</ul>';
+  div.innerHTML = '<div class="grid-cards">' + lista.map(crearCard).join('') + '</div>';
 }
 
 document.getElementById('form-buscar-id').addEventListener('submit', async (evento) => {
