@@ -5,463 +5,55 @@
        scripts — sin esta línea, "supabase.createClient" no existiría
        todavía cuando supabaseClient.js intente usarlo -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
-  <!-- Estilo del formulario con la paleta de GTA VI: atardecer de
-       Vice City (rosa → naranja), noche morada y neón turquesa. -->
-  <style>
-    :root {
-      --gta-noche: #1b0b2e;
-      --gta-morado: #3a1259;
-      --gta-rosa: #ff2e88;
-      --gta-naranja: #ff8a3d;
-      --gta-amarillo: #ffd166;
-      --gta-turquesa: #2de2e6;
-      --gta-texto: #fff4f8;
-    }
-
-    /* ===== Página completa ===== */
-    body {
-      margin: 0;
-      padding: 24px 16px;
-      min-height: 100vh;
-      box-sizing: border-box;
-      /* Cielo de Vice City: noche arriba, atardecer abajo */
-      background: linear-gradient(180deg, var(--gta-noche) 0%, var(--gta-morado) 55%, #7a1f5c 80%, #c2410c 100%);
-      background-attachment: fixed;
-      color: var(--gta-texto);
-      font-family: system-ui, sans-serif;
-    }
-
-    /* Campos sueltos de arriba (fuera del formulario) */
-    body > input {
-      padding: 8px 10px;
-      margin: 4px 4px 4px 0;
-      border: 1px solid var(--gta-rosa);
-      border-radius: 8px;
-      background: rgba(255, 255, 255, 0.08);
-      color: var(--gta-texto);
-      font-size: 15px;
-    }
-
-    body > input:focus {
-      outline: none;
-      border-color: var(--gta-turquesa);
-      box-shadow: 0 0 8px var(--gta-turquesa);
-    }
-
-    ::placeholder {
-      color: rgba(255, 244, 248, 0.55);
-    }
-
-    /* Botones fuera del formulario */
-    body > button {
-      padding: 9px 18px;
-      margin: 4px 4px 4px 0;
-      border: 2px solid var(--gta-turquesa);
-      border-radius: 999px;
-      background: transparent;
-      color: var(--gta-turquesa);
-      font-weight: bold;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-      cursor: pointer;
-      transition: background 0.2s, color 0.2s, box-shadow 0.2s;
-    }
-
-    body > button:hover {
-      background: var(--gta-turquesa);
-      color: var(--gta-noche);
-      box-shadow: 0 0 14px var(--gta-turquesa);
-    }
-
-    #mensaje {
-      color: var(--gta-amarillo);
-    }
-
-    /* Resultados de "Traer productos" */
-    #resultado {
-      white-space: pre-wrap;
-      font-family: ui-monospace, Consolas, monospace;
-      font-size: 13px;
-      max-height: 300px;
-      overflow: auto;
-      margin-top: 16px;
-      padding: 12px;
-      border-radius: 12px;
-      background: rgba(0, 0, 0, 0.35);
-      border-left: 4px solid var(--gta-rosa);
-    }
-
-    #resultado:empty,
-    #resultado2:empty,
-    #resultado3:empty {
-      display: none;
-    }
-
-    #resultado2,
-    #resultado3 {
-      display: inline-block;
-      vertical-align: top;
-      margin: 16px 16px 0 0;
-      padding: 8px 16px;
-      border-radius: 12px;
-      background: rgba(0, 0, 0, 0.3);
-    }
-
-    #resultado2 li { color: var(--gta-rosa); }
-    #resultado3 li { color: var(--gta-naranja); }
-
-    /* ===== Formulario ===== */
-    #form-producto {
-      max-width: 420px;
-      margin: 24px auto;
-      padding: 24px;
-      border-radius: 16px;
-      background: linear-gradient(160deg, var(--gta-morado), var(--gta-noche));
-      border: 2px solid var(--gta-rosa);
-      box-shadow: 0 0 24px rgba(255, 46, 136, 0.45);
-      color: var(--gta-texto);
-      font-family: system-ui, sans-serif;
-    }
-
-    #form-producto h2 {
-      margin-top: 0;
-      text-align: center;
-      text-transform: uppercase;
-      letter-spacing: 2px;
-      /* Texto con degradado de atardecer */
-      background: linear-gradient(90deg, var(--gta-rosa), var(--gta-naranja), var(--gta-amarillo));
-      -webkit-background-clip: text;
-      background-clip: text;
-      color: transparent;
-    }
-
-    #form-producto label {
-      display: block;
-      margin-bottom: 4px;
-      font-size: 14px;
-      color: var(--gta-turquesa);
-    }
-
-    #form-producto br {
-      display: none;
-    }
-
-    #form-producto input[type="text"],
-    #form-producto input[type="number"],
-    #form-producto input[type="url"],
-    #form-producto textarea {
-      display: block;
-      width: 100%;
-      box-sizing: border-box;
-      margin: 4px 0 12px;
-      padding: 8px 10px;
-      border: 1px solid var(--gta-morado);
-      border-radius: 8px;
-      background: rgba(255, 255, 255, 0.08);
-      color: var(--gta-texto);
-      font-size: 15px;
-    }
-
-    #form-producto input:focus,
-    #form-producto textarea:focus {
-      outline: none;
-      border-color: var(--gta-turquesa);
-      box-shadow: 0 0 8px var(--gta-turquesa);
-    }
-
-    #form-producto input[type="checkbox"] {
-      accent-color: var(--gta-rosa);
-      margin: 8px 6px 12px 0;
-    }
-
-    #form-producto button[type="submit"] {
-      width: 100%;
-      padding: 12px;
-      border: none;
-      border-radius: 999px;
-      background: linear-gradient(90deg, var(--gta-rosa), var(--gta-naranja));
-      color: white;
-      font-weight: bold;
-      font-size: 16px;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-      cursor: pointer;
-      transition: transform 0.1s, box-shadow 0.2s;
-    }
-
-    #form-producto button[type="submit"]:hover {
-      box-shadow: 0 0 16px var(--gta-naranja);
-      transform: translateY(-1px);
-    }
-
-    #mensaje-form {
-      text-align: center;
-      color: var(--gta-amarillo);
-      min-height: 1em;
-    }
-
-    /* ===== Cards de productos (READ) ===== */
-    #seccion-productos {
-      margin: 32px 0;
-    }
-
-    #btn-ver {
-      padding: 12px 28px;
-      border: none;
-      border-radius: 999px;
-      background: linear-gradient(90deg, var(--gta-rosa), var(--gta-naranja));
-      color: white;
-      font-weight: bold;
-      font-size: 16px;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-      cursor: pointer;
-    }
-
-    #btn-ver:hover {
-      box-shadow: 0 0 16px var(--gta-naranja);
-    }
-
-    #mensaje-productos {
-      color: var(--gta-amarillo);
-    }
-
-    #busqueda {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 12px;
-      margin-top: 16px;
-    }
-
-    .busqueda-fila {
-      display: flex;
-      gap: 6px;
-    }
-
-    .busqueda-fila input {
-      padding: 8px 10px;
-      border: 1px solid var(--gta-rosa);
-      border-radius: 8px;
-      background: rgba(255, 255, 255, 0.08);
-      color: var(--gta-texto);
-      font-size: 15px;
-    }
-
-    .busqueda-fila input:focus {
-      outline: none;
-      border-color: var(--gta-turquesa);
-      box-shadow: 0 0 8px var(--gta-turquesa);
-    }
-
-    .busqueda-fila button {
-      padding: 8px 16px;
-      border: 2px solid var(--gta-turquesa);
-      border-radius: 999px;
-      background: transparent;
-      color: var(--gta-turquesa);
-      font-weight: bold;
-      cursor: pointer;
-    }
-
-    .busqueda-fila button:hover {
-      background: var(--gta-turquesa);
-      color: var(--gta-noche);
-    }
-
-    #productos {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
-      gap: 20px;
-    }
-
-    .card {
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
-      border-radius: 16px;
-      background: linear-gradient(160deg, var(--gta-morado), var(--gta-noche));
-      border: 1px solid rgba(255, 46, 136, 0.5);
-      box-shadow: 0 4px 18px rgba(0, 0, 0, 0.4);
-      transition: transform 0.15s, box-shadow 0.2s;
-    }
-
-    .card:hover {
-      transform: translateY(-4px);
-      box-shadow: 0 0 22px rgba(255, 46, 136, 0.55);
-    }
-
-    .card-imagen {
-      position: relative;
-      aspect-ratio: 4 / 3;
-      background: linear-gradient(135deg, var(--gta-rosa), var(--gta-naranja));
-    }
-
-    .card-imagen img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      display: block;
-    }
-
-    /* Se ve cuando el producto no tiene image_url */
-    .card-sin-imagen {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      height: 100%;
-      font-size: 14px;
-      font-weight: bold;
-      letter-spacing: 1px;
-      text-transform: uppercase;
-      color: var(--gta-noche);
-    }
-
-    .card-descuento {
-      position: absolute;
-      top: 10px;
-      right: 10px;
-      padding: 4px 10px;
-      border-radius: 999px;
-      background: var(--gta-amarillo);
-      color: var(--gta-noche);
-      font-weight: bold;
-      font-size: 13px;
-    }
-
-    .card-cuerpo {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      padding: 14px 16px 16px;
-      flex: 1;
-    }
-
-    .card-cuerpo h3 {
-      margin: 0;
-      font-size: 18px;
-      color: var(--gta-texto);
-    }
-
-    .card-descripcion {
-      margin: 0;
-      font-size: 14px;
-      color: rgba(255, 244, 248, 0.75);
-    }
-
-    .card-categorias {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 6px;
-    }
-
-    .card-categorias span {
-      padding: 2px 10px;
-      border-radius: 999px;
-      border: 1px solid var(--gta-turquesa);
-      color: var(--gta-turquesa);
-      font-size: 12px;
-    }
-
-    .card-precio {
-      margin-top: auto;
-      font-size: 20px;
-      font-weight: bold;
-      color: var(--gta-naranja);
-    }
-
-    .card-precio s {
-      margin-right: 6px;
-      font-size: 14px;
-      font-weight: normal;
-      color: rgba(255, 244, 248, 0.5);
-    }
-
-    .card-pie {
-      display: flex;
-      justify-content: space-between;
-      font-size: 13px;
-      color: rgba(255, 244, 248, 0.75);
-    }
-
-    .disponible { color: var(--gta-turquesa); }
-    .agotado { color: var(--gta-rosa); }
-  </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Productos</title>
+  <!-- Fuentes y hoja de estilos inspirada en GTA VI -->
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anton&family=Montserrat:wght@400;600&family=Pacifico&display=swap">
+  <link rel="stylesheet" href="css/gta6.css">
 </head>
 <body>
 
-  <input id="input-nombre" type="text" placeholder="Nombre del producto">
-  <input id="input-precio" type="number" placeholder="Precio" min="0" step="any">
-  <input id="input-imagen" type="url" placeholder="URL de la imagen">
-  <button id="btn-agregar">Agregar producto</button>
-  <button id="btn-producto-nuevo">Agregar producto nuevo</button>
-  <p id="mensaje"></p>
+  <h1>Productos<span>Vice City Edition</span></h1>
 
-  <!-- Formulario con los mismos campos del objeto productoNuevo
-       (prueba.js). Cada "name" coincide con una columna de la tabla. -->
-  <form id="form-producto">
-    <h2>Agregar producto</h2>
-
-    <label>Nombre
-      <input name="Nombre" type="text" required>
-    </label><br>
-
-    <label>Descripción
-      <textarea name="descripcion"></textarea>
-    </label><br>
-
-    <label>Precio
-      <input name="precio" type="number" min="0" step="any" required>
-    </label><br>
-
-    <label>Unidades
-      <input name="unidades" type="number" min="0" step="1" value="0">
-    </label><br>
-
-    <label>Descuento (0 a 1, ej. 0.05 = 5%)
-      <input name="descuento" type="number" min="0" max="1" step="0.01" value="0">
-    </label><br>
-
-    <label>
-      <input name="disponible" type="checkbox" checked> Disponible
-    </label><br>
-
-    <label>Categorías (separadas por coma)
-      <input name="categoria" type="text" placeholder="tecnología, accesorios">
-    </label><br>
-
-    <label>URL de la imagen
-      <input name="image_url" type="url">
-    </label><br>
-
-    <button type="submit">Guardar producto</button>
-    <p id="mensaje-form"></p>
+  <!-- Formulario para agregarProducto() en prueba.js -->
+  <form id="form-agregar">
+    <input id="input-nombre" type="text" placeholder="Nombre" required>
+    <input id="input-descripcion" type="text" placeholder="Descripción">
+    <input id="input-precio" type="number" placeholder="Precio" min="0" step="any" required>
+    <input id="input-unidades" type="number" placeholder="Unidades" min="0" step="1" required>
+    <input id="input-descuento" type="number" placeholder="Descuento %" min="0" max="100" step="any">
+    <button type="submit">Agregar producto</button>
   </form>
+  <div id="notificacion"></div>
 
-  <!-- READ del CRUD: cada producto de la tabla se muestra como una card -->
-  <section id="seccion-productos">
-    <button id="btn-ver">Ver productos</button>
+  <!-- Formularios para buscarProductoPorId() y buscarProductosPorNombre() -->
+  <form id="form-buscar-id">
+    <input id="input-buscar-id" type="number" placeholder="Buscar por ID" min="1" required>
+    <button type="submit">Buscar</button>
+  </form>
+  <form id="form-buscar-nombre">
+    <input id="input-buscar-nombre" type="text" placeholder="Buscar por nombre" required>
+    <button type="submit">Buscar</button>
+  </form>
+  <div id="resultado-busqueda"></div>
 
-    <!-- Búsquedas: un producto por su id, o varios por su nombre -->
-    <div id="busqueda">
-      <div class="busqueda-fila">
-        <input id="buscar-id" type="number" min="1" step="1" placeholder="Id del producto">
-        <button id="btn-buscar-id">Buscar por id</button>
-      </div>
-      <div class="busqueda-fila">
-        <input id="buscar-nombre" type="text" placeholder="Nombre o parte del nombre">
-        <button id="btn-buscar-nombre">Buscar por nombre</button>
-      </div>
-    </div>
-
-    <p id="mensaje-productos"></p>
-    <div id="productos"></div>
-  </section>
+  <!-- Formulario para modificarProducto(): solo se cambian los campos que llenes -->
+  <form id="form-modificar">
+    <input id="input-mod-id" type="number" placeholder="ID a modificar" min="1" required>
+    <input id="input-mod-nombre" type="text" placeholder="Nuevo nombre">
+    <input id="input-mod-precio" type="number" placeholder="Nuevo precio" min="0" step="any">
+    <input id="input-mod-unidades" type="number" placeholder="Nuevas unidades" min="0" step="1">
+    <input id="input-mod-descuento" type="number" placeholder="Nuevo descuento %" min="0" max="100" step="any">
+    <button type="submit">Modificar producto</button>
+  </form>
+  <div id="notificacion-mod"></div>
 
   <button id="btn-traer">Traer productos</button>
   <div id="resultado"></div>
    <div id="resultado2"></div>
    <div id="resultado3"></div>
+   <div id="resultado4"></div>
   <!-- supabaseClient.js crea "db" (sección 4.3): el cliente ya
        conectado a tu proyecto de Supabase. Lo vamos a usar en
        prueba.js, por eso tiene que cargarse ANTES que ese archivo -->
