@@ -5,13 +5,55 @@
        scripts — sin esta línea, "supabase.createClient" no existiría
        todavía cuando supabaseClient.js intente usarlo -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Productos</title>
+  <!-- Fuentes y hoja de estilos inspirada en GTA VI -->
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anton&family=Montserrat:wght@400;600&family=Pacifico&display=swap">
+  <link rel="stylesheet" href="css/gta6.css">
 </head>
 <body>
+
+  <h1>Productos<span>Vice City Edition</span></h1>
+
+  <!-- Formulario para agregarProducto() en prueba.js -->
+  <form id="form-agregar">
+    <input id="input-nombre" type="text" placeholder="Nombre" required>
+    <input id="input-descripcion" type="text" placeholder="Descripción">
+    <input id="input-precio" type="number" placeholder="Precio" min="0" step="any" required>
+    <input id="input-unidades" type="number" placeholder="Unidades" min="0" step="1" required>
+    <input id="input-descuento" type="number" placeholder="Descuento %" min="0" max="100" step="any">
+    <button type="submit">Agregar producto</button>
+  </form>
+  <div id="notificacion"></div>
+
+  <!-- Formularios para buscarProductoPorId() y buscarProductosPorNombre() -->
+  <form id="form-buscar-id">
+    <input id="input-buscar-id" type="number" placeholder="Buscar por ID" min="1" required>
+    <button type="submit">Buscar</button>
+  </form>
+  <form id="form-buscar-nombre">
+    <input id="input-buscar-nombre" type="text" placeholder="Buscar por nombre" required>
+    <button type="submit">Buscar</button>
+  </form>
+  <div id="resultado-busqueda"></div>
+
+  <!-- Formulario para modificarProducto(): solo se cambian los campos que llenes -->
+  <form id="form-modificar">
+    <input id="input-mod-id" type="number" placeholder="ID a modificar" min="1" required>
+    <input id="input-mod-nombre" type="text" placeholder="Nuevo nombre">
+    <input id="input-mod-precio" type="number" placeholder="Nuevo precio" min="0" step="any">
+    <input id="input-mod-unidades" type="number" placeholder="Nuevas unidades" min="0" step="1">
+    <input id="input-mod-descuento" type="number" placeholder="Nuevo descuento %" min="0" max="100" step="any">
+    <button type="submit">Modificar producto</button>
+  </form>
+  <div id="notificacion-mod"></div>
 
   <button id="btn-traer">Traer productos</button>
   <div id="resultado"></div>
    <div id="resultado2"></div>
    <div id="resultado3"></div>
+   <div id="resultado4"></div>
   <!-- supabaseClient.js crea "db" (sección 4.3): el cliente ya
        conectado a tu proyecto de Supabase. Lo vamos a usar en
        prueba.js, por eso tiene que cargarse ANTES que ese archivo -->

@@ -1,0 +1,331 @@
+/* Estilo inspirado en GTA VI: atardecer de Vice City, neón rosa/naranja
+   y tipografía condensada en mayúsculas */
+
+:root {
+  --rosa: #ff2e88;
+  --naranja: #ff8a3d;
+  --amarillo: #ffd166;
+  --morado: #6a1b9a;
+  --azul-noche: #1a0b2e;
+  --turquesa: #2de2e6;
+  --texto: #fff4e6;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  padding: 40px 16px;
+  font-family: 'Montserrat', sans-serif;
+  color: var(--texto);
+  /* Cielo de atardecer */
+  background:
+    linear-gradient(180deg,
+      var(--azul-noche) 0%,
+      var(--morado) 35%,
+      var(--rosa) 65%,
+      var(--naranja) 85%,
+      var(--amarillo) 100%) fixed;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-content: flex-start;
+  gap: 20px;
+  position: relative;
+  overflow-x: hidden;
+}
+
+/* Sol que se oculta detrás del contenido */
+body::before {
+  content: '';
+  position: fixed;
+  left: 50%;
+  bottom: -140px;
+  width: 420px;
+  height: 420px;
+  transform: translateX(-50%);
+  border-radius: 50%;
+  background: repeating-linear-gradient(180deg,
+    var(--amarillo) 0 18px,
+    transparent 18px 26px),
+    radial-gradient(circle, var(--amarillo), var(--rosa));
+  background-blend-mode: multiply;
+  opacity: 0.55;
+  z-index: -1;
+}
+
+/* Título */
+h1 {
+  width: 100%;
+  margin: 0 0 10px;
+  text-align: center;
+  font-family: 'Anton', sans-serif;
+  font-size: clamp(2.5rem, 8vw, 5rem);
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  background: linear-gradient(90deg, var(--amarillo), var(--rosa), var(--turquesa));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  filter: drop-shadow(3px 3px 0 var(--azul-noche));
+}
+
+h1 span {
+  display: block;
+  font-family: 'Pacifico', cursive;
+  font-size: 0.4em;
+  letter-spacing: 1px;
+  text-transform: none;
+}
+
+/* Botón */
+#btn-traer {
+  width: 100%;
+  max-width: 320px;
+  padding: 16px 28px;
+  font-family: 'Anton', sans-serif;
+  font-size: 1.4rem;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--azul-noche);
+  background: linear-gradient(90deg, var(--amarillo), var(--naranja), var(--rosa));
+  border: 3px solid var(--azul-noche);
+  border-radius: 6px;
+  box-shadow: 6px 6px 0 var(--azul-noche);
+  cursor: pointer;
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+
+#btn-traer:hover {
+  transform: translate(-2px, -2px);
+  box-shadow: 8px 8px 0 var(--azul-noche), 0 0 25px var(--rosa);
+}
+
+#btn-traer:active {
+  transform: translate(4px, 4px);
+  box-shadow: 2px 2px 0 var(--azul-noche);
+}
+
+/* Tarjetas de resultados */
+#resultado,
+#resultado2,
+#resultado3,
+#resultado4 {
+  flex: 1 1 260px;
+  max-width: 420px;
+  padding: 18px 22px;
+  background: rgba(26, 11, 46, 0.75);
+  border: 2px solid var(--rosa);
+  border-radius: 10px;
+  box-shadow: 0 0 18px rgba(255, 46, 136, 0.6);
+  backdrop-filter: blur(4px);
+}
+
+/* Ocultar tarjetas vacías hasta que lleguen datos */
+#resultado:empty,
+#resultado2:empty,
+#resultado3:empty,
+#resultado4:empty {
+  display: none;
+}
+
+/* El JSON completo ocupa todo el ancho */
+#resultado {
+  flex-basis: 100%;
+  max-width: 1300px;
+  max-height: 260px;
+  overflow: auto;
+  white-space: pre-wrap;
+  font-family: 'Courier New', monospace;
+  font-size: 0.85rem;
+  color: var(--turquesa);
+  border-color: var(--turquesa);
+  box-shadow: 0 0 18px rgba(45, 226, 230, 0.5);
+}
+
+#resultado3 { border-color: var(--naranja); box-shadow: 0 0 18px rgba(255, 138, 61, 0.6); }
+#resultado4 { border-color: var(--amarillo); box-shadow: 0 0 18px rgba(255, 209, 102, 0.6); }
+
+ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+li {
+  padding: 10px 4px;
+  border-bottom: 1px dashed rgba(255, 244, 230, 0.25);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+li:last-child { border-bottom: none; }
+
+li::before {
+  content: '★ ';
+  color: var(--rosa);
+}
+
+/* Formulario para agregar productos */
+#form-agregar {
+  width: 100%;
+  max-width: 900px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 18px;
+  background: rgba(26, 11, 46, 0.75);
+  border: 2px solid var(--turquesa);
+  border-radius: 10px;
+  box-shadow: 0 0 18px rgba(45, 226, 230, 0.5);
+}
+
+#form-agregar input {
+  flex: 1 1 160px;
+  padding: 12px;
+  font-family: 'Montserrat', sans-serif;
+  font-size: 1rem;
+  color: var(--texto);
+  background: rgba(255, 255, 255, 0.08);
+  border: 2px solid var(--rosa);
+  border-radius: 6px;
+}
+
+#form-agregar input::placeholder { color: rgba(255, 244, 230, 0.6); }
+#form-agregar input:focus { outline: none; box-shadow: 0 0 12px var(--rosa); }
+
+#form-agregar button {
+  flex: 1 1 160px;
+  padding: 12px;
+  font-family: 'Anton', sans-serif;
+  font-size: 1.1rem;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--azul-noche);
+  background: var(--turquesa);
+  border: 2px solid var(--azul-noche);
+  border-radius: 6px;
+  box-shadow: 4px 4px 0 var(--azul-noche);
+  cursor: pointer;
+}
+
+#form-agregar button:active { transform: translate(3px, 3px); box-shadow: 1px 1px 0 var(--azul-noche); }
+
+#notificacion {
+  width: 100%;
+  text-align: center;
+  font-weight: 600;
+  text-shadow: 2px 2px 0 var(--azul-noche);
+}
+
+#notificacion:empty { display: none; }
+
+/* Formularios de búsqueda: mismo estilo que el de agregar */
+#form-buscar-id,
+#form-buscar-nombre {
+  flex: 1 1 300px;
+  max-width: 445px;
+  display: flex;
+  gap: 10px;
+  padding: 18px;
+  background: rgba(26, 11, 46, 0.75);
+  border: 2px solid var(--rosa);
+  border-radius: 10px;
+  box-shadow: 0 0 18px rgba(255, 46, 136, 0.6);
+}
+
+#form-buscar-id input,
+#form-buscar-nombre input {
+  flex: 1;
+  min-width: 0;
+  padding: 12px;
+  font-family: 'Montserrat', sans-serif;
+  font-size: 1rem;
+  color: var(--texto);
+  background: rgba(255, 255, 255, 0.08);
+  border: 2px solid var(--turquesa);
+  border-radius: 6px;
+}
+
+#form-buscar-id input::placeholder,
+#form-buscar-nombre input::placeholder { color: rgba(255, 244, 230, 0.6); }
+
+#form-buscar-id button,
+#form-buscar-nombre button {
+  padding: 12px 18px;
+  font-family: 'Anton', sans-serif;
+  font-size: 1.1rem;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--azul-noche);
+  background: var(--rosa);
+  border: 2px solid var(--azul-noche);
+  border-radius: 6px;
+  box-shadow: 4px 4px 0 var(--azul-noche);
+  cursor: pointer;
+}
+
+#resultado-busqueda {
+  width: 100%;
+  max-width: 900px;
+  padding: 18px 22px;
+  background: rgba(26, 11, 46, 0.75);
+  border: 2px solid var(--amarillo);
+  border-radius: 10px;
+  box-shadow: 0 0 18px rgba(255, 209, 102, 0.6);
+}
+
+#resultado-busqueda:empty { display: none; }
+
+/* Formulario de modificar: reutiliza el aspecto del de agregar */
+#form-modificar {
+  width: 100%;
+  max-width: 900px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 18px;
+  background: rgba(26, 11, 46, 0.75);
+  border: 2px solid var(--naranja);
+  border-radius: 10px;
+  box-shadow: 0 0 18px rgba(255, 138, 61, 0.6);
+}
+
+#form-modificar input {
+  flex: 1 1 140px;
+  padding: 12px;
+  font-family: 'Montserrat', sans-serif;
+  font-size: 1rem;
+  color: var(--texto);
+  background: rgba(255, 255, 255, 0.08);
+  border: 2px solid var(--naranja);
+  border-radius: 6px;
+}
+
+#form-modificar input::placeholder { color: rgba(255, 244, 230, 0.6); }
+
+#form-modificar button {
+  flex: 1 1 160px;
+  padding: 12px;
+  font-family: 'Anton', sans-serif;
+  font-size: 1.1rem;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--azul-noche);
+  background: var(--naranja);
+  border: 2px solid var(--azul-noche);
+  border-radius: 6px;
+  box-shadow: 4px 4px 0 var(--azul-noche);
+  cursor: pointer;
+}
+
+#notificacion-mod {
+  width: 100%;
+  text-align: center;
+  font-weight: 600;
+  text-shadow: 2px 2px 0 var(--azul-noche);
+}
+
+#notificacion-mod:empty { display: none; }
