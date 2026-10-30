@@ -296,8 +296,8 @@ li::before {
 
 #lista-productos:empty { display: none; }
 
-.btn-editar {
-  margin-top: 6px;
+.btn-editar,
+.btn-eliminar {
   flex-shrink: 0;
   padding: 6px 14px;
   font-family: 'Anton', sans-serif;
@@ -314,7 +314,8 @@ li::before {
 .btn-editar:hover { box-shadow: 3px 3px 0 var(--azul-noche), 0 0 14px var(--naranja); }
 
 /* Modal de edición (<dialog>) */
-#modal-editar {
+#modal-editar,
+#modal-eliminar {
   width: min(480px, calc(100% - 32px));
   padding: 24px;
   color: var(--texto);
@@ -325,12 +326,14 @@ li::before {
 }
 
 /* Fondo oscuro detrás del modal */
-#modal-editar::backdrop {
+#modal-editar::backdrop,
+#modal-eliminar::backdrop {
   background: rgba(26, 11, 46, 0.7);
   backdrop-filter: blur(3px);
 }
 
-#modal-editar h2 {
+#modal-editar h2,
+#modal-eliminar h2 {
   margin: 0 0 16px;
   font-family: 'Anton', sans-serif;
   letter-spacing: 2px;
@@ -500,3 +503,20 @@ li::before {
 
 .disponible { color: var(--turquesa); }
 .agotado { color: var(--rosa); }
+
+/* Botones Editar / Eliminar de cada card */
+.card-botones {
+  display: flex;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+.card-botones button { flex: 1; }
+
+.btn-eliminar { background: var(--rosa); }
+.btn-eliminar:hover { box-shadow: 3px 3px 0 var(--azul-noche), 0 0 14px var(--rosa); }
+
+/* Modal de confirmación para eliminar: borde y botón en rosa */
+#modal-eliminar { border-color: var(--rosa); box-shadow: 0 0 30px rgba(255, 46, 136, 0.7); }
+#modal-eliminar p { margin: 0 0 6px; }
+#modal-eliminar .modal-botones button[type="submit"] { background: var(--rosa); }

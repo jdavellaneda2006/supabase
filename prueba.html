@@ -76,6 +76,20 @@
       </div>
     </form>
   </dialog>
+
+  <!-- Modal de confirmación para eliminarProducto() -->
+  <dialog id="modal-eliminar">
+    <form id="form-eliminar">
+      <h2>¿Eliminar producto?</h2>
+      <input id="eliminar-id" type="hidden">
+      <p>Vas a eliminar <strong id="eliminar-nombre"></strong>.</p>
+      <p>Esta acción no se puede deshacer.</p>
+      <div class="modal-botones">
+        <button type="button" id="btn-cancelar-eliminar">Cancelar</button>
+        <button type="submit">Sí, eliminar</button>
+      </div>
+    </form>
+  </dialog>
   <!-- supabaseClient.js crea "db" (sección 4.3): el cliente ya
        conectado a tu proyecto de Supabase. Lo vamos a usar en
        prueba.js, por eso tiene que cargarse ANTES que ese archivo -->

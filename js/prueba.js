@@ -104,7 +104,10 @@ function crearCard(producto) {
           ${estado}
           <span>${producto.unidades ?? 0} unidades</span>
         </div>
-        <button class="btn-editar" data-id="${producto.id}">Editar</button>
+        <div class="card-botones">
+          <button class="btn-editar" data-id="${producto.id}">Editar</button>
+          <button class="btn-eliminar" data-id="${producto.id}" data-nombre="${escaparHTML(producto.Nombre)}">Eliminar</button>
+        </div>
       </div>
     </article>`;
 }
@@ -289,6 +292,9 @@ async function abrirModalEditar(id) {
 document.addEventListener('click', (evento) => {
   const boton = evento.target.closest('.btn-editar');
   if (boton) abrirModalEditar(Number(boton.dataset.id));
+
+  const botonEliminar = evento.target.closest('.btn-eliminar');
+  if (botonEliminar) abrirModalEliminar(Number(botonEliminar.dataset.id), botonEliminar.dataset.nombre);
 });
 
 document.getElementById('btn-cancelar').addEventListener('click', () => modal.close());
@@ -320,5 +326,45 @@ document.getElementById('form-editar').addEventListener('submit', async (evento)
     document.getElementById('resultado-busqueda').innerHTML = '';   // la búsqueda quedó desactualizada
   } else {
     aviso.innerText = 'No se pudo modificar el producto #' + id + '.';
+  }
+});
+
+
+// ===== Eliminar producto =====
+async function eliminarProducto(id) {
+
+  const { error } = await db
+    .from('productos_practica')
+    .delete()
+    .eq('id', id);
+
+  return !error;   // true si NO hubo error (se borró bien), false si falló
+}
+
+// Borrar no se puede deshacer, así que antes de llamar a eliminarProducto()
+// pedimos confirmación con un segundo modal
+const modalEliminar = document.getElementById('modal-eliminar');
+
+function abrirModalEliminar(id, nombre) {
+  document.getElementById('eliminar-id').value = id;
+  document.getElementById('eliminar-nombre').innerText = '#' + id + ' ' + nombre;
+  modalEliminar.showModal();
+}
+
+document.getElementById('btn-cancelar-eliminar').addEventListener('click', () => modalEliminar.close());
+
+document.getElementById('form-eliminar').addEventListener('submit', async (evento) => {
+  evento.preventDefault();
+  const id = Number(document.getElementById('eliminar-id').value);
+  const borrado = await eliminarProducto(id);
+  const aviso = document.getElementById('notificacion-mod');
+
+  modalEliminar.close();
+  if (borrado) {
+    aviso.innerText = 'Producto #' + id + ' eliminado.';
+    cargarProductos();   // refresca las cards: la del producto borrado desaparece
+    document.getElementById('resultado-busqueda').innerHTML = '';
+  } else {
+    aviso.innerText = 'No se pudo eliminar el producto #' + id + '.';
   }
 });
