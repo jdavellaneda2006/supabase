@@ -1,87 +1,10 @@
-document.getElementById('btn-agregar').addEventListener('click', async () => {
-  const nombre = document.getElementById('input-nombre').value.trim();
-  const precio = Number(document.getElementById('input-precio').value);
-  // La imagen es opcional: si el campo queda vacío guardamos null.
-  const image_url = document.getElementById('input-imagen').value.trim() || null;
-  const mensaje = document.getElementById('mensaje');
-
-  // Validamos antes de enviar: sin nombre o con precio inválido no
-  // tiene sentido gastar un viaje a Supabase.
-  if (!nombre || isNaN(precio) || precio < 0) {
-    mensaje.textContent = 'Escribe un nombre y un precio válido.';
-    return;
-  }
-
-  // insert() recibe un array de filas; las llaves deben coincidir con
-  // los nombres de las columnas de la tabla ("Nombre" con N mayúscula).
-  // .select() hace que Supabase devuelva la fila recién creada,
-  // así podemos leer el id que le asignó la base de datos.
-  const { data, error } = await db.from('productos_practica').insert([{ Nombre: nombre, precio, image_url }]).select();
-
-  if (error) {
-    mensaje.textContent = 'Error: ' + error.message;
-    return;
-  }
-
-  mensaje.textContent = 'Producto agregado a id: ' + data[0].id;
-  document.getElementById('input-nombre').value = '';
-  document.getElementById('input-precio').value = '';
-  document.getElementById('input-imagen').value = '';
-  // Volvemos a traer la lista para que se vea el producto nuevo.
-  document.getElementById('btn-traer').click();
-  mostrarProductos();
-});
-
-// Producto escrito directamente en el código: las llaves del objeto
-// son los nombres de las columnas de la tabla productos_practica.
-const productoNuevo = {
-  Nombre: 'Reloj Inteligente S10',
-  descripcion: 'Reloj inteligente con monitor de ritmo cardíaco y GPS',
-  precio: 320000,
-  unidades: 15,
-  descuento: 0.05,
-  disponible: true,
-  categoria: ['tecnología', 'accesorios'],
-  image_url: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=600'
-};
-
-document.getElementById('btn-producto-nuevo').addEventListener('click', async () => {
-  const mensaje = document.getElementById('mensaje');
-
-  // Antes de insertar buscamos si ya hay un producto con ese nombre;
-  // así el botón no crea una copia nueva cada vez que se pulsa.
-  const { data: existentes, error: errorBusqueda } = await db
-    .from('productos_practica')
-    .select('id')
-    .eq('Nombre', productoNuevo.Nombre);
-
-  if (errorBusqueda) {
-    mensaje.textContent = 'Error: ' + errorBusqueda.message;
-    return;
-  }
-
-  if (existentes.length > 0) {
-    mensaje.textContent = 'El producto ya existe en id: ' + existentes[0].id;
-    return;
-  }
-
-  const { data, error } = await db.from('productos_practica').insert([productoNuevo]).select();
-
-  if (error) {
-    mensaje.textContent = 'Error: ' + error.message;
-    return;
-  }
-
-  mensaje.textContent = 'Producto agregado a id: ' + data[0].id;
-  document.getElementById('btn-traer').click();
-  mostrarProductos();
-});
-
-document.getElementById('btn-traer').addEventListener('click', async () => {
+// La lectura de productos ahora es una función con nombre, para poder
+// volver a llamarla después de editar un producto (y refrescar la lista)
+async function cargarProductos() {
 
   // Mismo "async" que en el Paso 2: esta función necesita "await" para
   // esperar la respuesta real de Supabase antes de seguir.
-  const { data, error } = await db.from('productos_practica').select('*');
+  const { data, error } = await db.from('productos_practica').select('*').order('id');
   // ↑ El código se DETIENE en esta línea hasta que la base de datos
   //   responde. Compáralo con localStorage.getItem('productos'): esa
   //   llamada te devuelve el valor guardado EN EL MISMO INSTANTE, sin
@@ -113,7 +36,81 @@ document.getElementById('btn-traer').addEventListener('click', async () => {
     '<ul>' + precios.map(n => `<li>${n}</li>`).join('') + '</ul>';
   document.getElementById('resultado4').innerHTML =
     '<ul>' + descuentos.map(d => `<li>${d}</li>`).join('') + '</ul>';
-});
+
+  // Cards de todos los productos, cada una con su botón "Editar"
+  document.getElementById('lista-productos').innerHTML =
+    '<div class="grid-cards">' + data.map(crearCard).join('') + '</div>';
+}
+
+document.getElementById('btn-traer').addEventListener('click', cargarProductos);
+
+// ===== Cards de productos (traídas de la versión del 26 de octubre) =====
+
+// Evita que un texto de la tabla (ej. un nombre con "<") se interprete como
+// HTML al meterlo con innerHTML
+function escaparHTML(texto) {
+  return String(texto ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+function formatearPrecio(valor) {
+  return Number(valor).toLocaleString('es-CO', {
+    style: 'currency',
+    currency: 'COP',
+    maximumFractionDigits: 0
+  });
+}
+
+// Arma la card de un producto con su botón "Editar". El botón guarda el id
+// en data-id para saber qué producto abrir en el modal.
+function crearCard(producto) {
+  const descuento = Number(producto.descuento) || 0;
+  const precioFinal = producto.precio * (1 - descuento);
+
+  const tieneImagen = /^https?:\/\//.test(producto.image_url || '');
+  const imagen = tieneImagen
+    ? `<img src="${escaparHTML(producto.image_url)}" alt="${escaparHTML(producto.Nombre)}">`
+    : `<div class="card-sin-imagen">Sin imagen</div>`;
+
+  const etiquetaDescuento = descuento > 0
+    ? `<span class="card-descuento">-${Math.round(descuento * 100)}%</span>`
+    : '';
+
+  const precio = descuento > 0
+    ? `<s>${formatearPrecio(producto.precio)}</s>${formatearPrecio(precioFinal)}`
+    : formatearPrecio(producto.precio);
+
+  const categorias = (producto.categoria || [])
+    .map(c => `<span>${escaparHTML(c)}</span>`)
+    .join('');
+
+  const estado = producto.disponible
+    ? '<span class="disponible">● Disponible</span>'
+    : '<span class="agotado">● Agotado</span>';
+
+  return `
+    <article class="card">
+      <div class="card-imagen">${imagen}${etiquetaDescuento}</div>
+      <div class="card-cuerpo">
+        <h3>#${producto.id} ${escaparHTML(producto.Nombre)}</h3>
+        ${producto.descripcion ? `<p class="card-descripcion">${escaparHTML(producto.descripcion)}</p>` : ''}
+        <div class="card-categorias">${categorias}</div>
+        <div class="card-precio">${precio}</div>
+        <div class="card-pie">
+          ${estado}
+          <span>${producto.unidades ?? 0} unidades</span>
+        </div>
+        <div class="card-botones">
+          <button class="btn-editar" data-id="${producto.id}">Editar</button>
+          <button class="btn-eliminar" data-id="${producto.id}" data-nombre="${escaparHTML(producto.Nombre)}">Eliminar</button>
+        </div>
+      </div>
+    </article>`;
+}
 // ANTES (si lo hubieras hecho con localStorage, como en la semana 7):
 // (queda comentado: usa siguienteId, productos y guardarProductos, que no
 //  existen en este proyecto, y se llama igual que la versión de Supabase)
@@ -214,16 +211,14 @@ async function buscarProductosPorNombre(texto) {
   return data;
 }
 
-// Convierte una lista de productos en <li> para mostrarla en pantalla
+// Convierte una lista de productos en cards para mostrarla en pantalla
 function mostrarBusqueda(lista) {
   const div = document.getElementById('resultado-busqueda');
   if (lista.length === 0) {
     div.innerText = 'No se encontraron productos.';
     return;
   }
-  div.innerHTML = '<ul>' + lista.map(p =>
-    `<li>#${p.id} — ${p.Nombre} — $${p.precio} (descuento: ${p.descuento * 100}%) — ${p.unidades} unidades</li>`
-  ).join('') + '</ul>';
+  div.innerHTML = '<div class="grid-cards">' + lista.map(crearCard).join('') + '</div>';
 }
 
 document.getElementById('form-buscar-id').addEventListener('submit', async (evento) => {
@@ -265,263 +260,111 @@ async function modificarProducto(id, cambios) {
   if (error) return null;
   return data[0];
 }
-document.getElementById('form-modificar').addEventListener('submit', async (evento) => {
-  evento.preventDefault();
-  const id = Number(document.getElementById('input-mod-id').value);
 
-  // Solo metemos en "cambios" los campos que el usuario llenó, para que
-  // update() no borre los demás valores de la fila
-  const cambios = {};
-  const nombre = document.getElementById('input-mod-nombre').value;
-  const precio = document.getElementById('input-mod-precio').value;
-  const unidades = document.getElementById('input-mod-unidades').value;
-  const descuento = document.getElementById('input-mod-descuento').value;
+// ===== Modal de edición =====
+const modal = document.getElementById('modal-editar');
 
-  if (nombre !== '') cambios.Nombre = nombre;
-  if (precio !== '') cambios.precio = Number(precio);
-  if (unidades !== '') {
-    cambios.unidades = Number(unidades);
-    cambios.disponible = Number(unidades) > 0;
-  }
-  if (descuento !== '') cambios.descuento = Number(descuento) / 100;   // % → fracción
-
-  const aviso = document.getElementById('notificacion-mod');
-  if (Object.keys(cambios).length === 0) {
-    aviso.innerText = 'Escribe al menos un campo para modificar.';
+// Abre el modal con los datos ACTUALES del producto (los pide a Supabase
+// con buscarProductoPorId, así no editas datos viejos)
+async function abrirModalEditar(id) {
+  const producto = await buscarProductoPorId(id);
+  if (!producto) {
+    document.getElementById('notificacion-mod').innerText = 'No se encontró el producto #' + id + '.';
     return;
   }
 
+  document.getElementById('modal-titulo-id').innerText = '#' + producto.id;
+  document.getElementById('edit-id').value = producto.id;
+  document.getElementById('edit-nombre').value = producto.Nombre ?? '';
+  document.getElementById('edit-descripcion').value = producto.descripcion ?? '';
+  document.getElementById('edit-precio').value = producto.precio ?? '';
+  document.getElementById('edit-unidades').value = producto.unidades ?? '';
+  // En la tabla el descuento es fracción (0.1); en el modal se ve como % (10)
+  document.getElementById('edit-descuento').value =
+    producto.descuento == null ? '' : Math.round(producto.descuento * 100);
+
+  modal.showModal();   // showModal() lo abre encima de todo y oscurece el fondo
+}
+
+// Un solo listener para TODOS los botones "Editar", aunque se creen después
+// con innerHTML: escuchamos los clics en el documento y revisamos si el
+// clic fue en un .btn-editar (esto se llama "delegación de eventos")
+document.addEventListener('click', (evento) => {
+  const boton = evento.target.closest('.btn-editar');
+  if (boton) abrirModalEditar(Number(boton.dataset.id));
+
+  const botonEliminar = evento.target.closest('.btn-eliminar');
+  if (botonEliminar) abrirModalEliminar(Number(botonEliminar.dataset.id), botonEliminar.dataset.nombre);
+});
+
+document.getElementById('btn-cancelar').addEventListener('click', () => modal.close());
+
+document.getElementById('form-editar').addEventListener('submit', async (evento) => {
+  evento.preventDefault();
+  const id = Number(document.getElementById('edit-id').value);
+  const unidades = Number(document.getElementById('edit-unidades').value);
+
+  // Como el modal ya trae todos los valores cargados, mandamos todos los campos
+  const cambios = {
+    Nombre: document.getElementById('edit-nombre').value,
+    descripcion: document.getElementById('edit-descripcion').value,
+    precio: Number(document.getElementById('edit-precio').value),
+    unidades: unidades,
+    descuento: Number(document.getElementById('edit-descuento').value) / 100,   // % → fracción
+    disponible: unidades > 0
+  };
+
   const actualizado = await modificarProducto(id, cambios);
+  const aviso = document.getElementById('notificacion-mod');
 
   // Si ningún id coincide, Supabase no da error: devuelve un array vacío
   // y data[0] queda undefined — por eso basta con revisar "actualizado"
   if (actualizado) {
     aviso.innerText = 'Producto #' + actualizado.id + ' modificado: ' + actualizado.Nombre;
-    evento.target.reset();
+    modal.close();
+    cargarProductos();   // refresca la lista con los datos nuevos
+    document.getElementById('resultado-busqueda').innerHTML = '';   // la búsqueda quedó desactualizada
   } else {
     aviso.innerText = 'No se pudo modificar el producto #' + id + '.';
   }
 });
 
 
-// ===== READ del CRUD: productos como cards =====
+// ===== Eliminar producto =====
+async function eliminarProducto(id) {
 
-// Los datos vienen de la base de datos y los metemos en innerHTML, así
-// que escapamos los caracteres especiales: si un nombre trae "<script>",
-// se muestra como texto en vez de ejecutarse.
-function escaparHTML(texto) {
-  return String(texto ?? '')
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#39;');
+  const { error } = await db
+    .from('productos_practica')
+    .delete()
+    .eq('id', id);
+
+  return !error;   // true si NO hubo error (se borró bien), false si falló
 }
 
-// 320000 → "$ 320.000" (formato de pesos colombianos)
-function formatearPrecio(valor) {
-  return Number(valor).toLocaleString('es-CO', {
-    style: 'currency',
-    currency: 'COP',
-    maximumFractionDigits: 0
-  });
+// Borrar no se puede deshacer, así que antes de llamar a eliminarProducto()
+// pedimos confirmación con un segundo modal
+const modalEliminar = document.getElementById('modal-eliminar');
+
+function abrirModalEliminar(id, nombre) {
+  document.getElementById('eliminar-id').value = id;
+  document.getElementById('eliminar-nombre').innerText = '#' + id + ' ' + nombre;
+  modalEliminar.showModal();
 }
 
-// Recibe UN producto (una fila de la tabla) y devuelve el HTML de su card.
-function crearCard(producto) {
-  const descuento = Number(producto.descuento) || 0;
-  const precioFinal = producto.precio * (1 - descuento);
+document.getElementById('btn-cancelar-eliminar').addEventListener('click', () => modalEliminar.close());
 
-  // Solo usamos la imagen si es un enlace http(s) válido.
-  const tieneImagen = /^https?:\/\//.test(producto.image_url || '');
-  const imagen = tieneImagen
-    ? `<img src="${escaparHTML(producto.image_url)}" alt="${escaparHTML(producto.Nombre)}">`
-    : `<div class="card-sin-imagen">Sin imagen</div>`;
-
-  const etiquetaDescuento = descuento > 0
-    ? `<span class="card-descuento">-${Math.round(descuento * 100)}%</span>`
-    : '';
-
-  // Si hay descuento mostramos el precio original tachado.
-  const precio = descuento > 0
-    ? `<s>${formatearPrecio(producto.precio)}</s>${formatearPrecio(precioFinal)}`
-    : formatearPrecio(producto.precio);
-
-  const categorias = (producto.categoria || [])
-    .map(c => `<span>${escaparHTML(c)}</span>`)
-    .join('');
-
-  const estado = producto.disponible
-    ? '<span class="disponible">● Disponible</span>'
-    : '<span class="agotado">● Agotado</span>';
-
-  return `
-    <article class="card">
-      <div class="card-imagen">${imagen}${etiquetaDescuento}</div>
-      <div class="card-cuerpo">
-        <h3>${escaparHTML(producto.Nombre)}</h3>
-        ${producto.descripcion ? `<p class="card-descripcion">${escaparHTML(producto.descripcion)}</p>` : ''}
-        <div class="card-categorias">${categorias}</div>
-        <div class="card-precio">${precio}</div>
-        <div class="card-pie">
-          ${estado}
-          <span>${producto.unidades ?? 0} unidades</span>
-        </div>
-      </div>
-    </article>`;
-}
-
-async function mostrarProductos() {
-  const contenedor = document.getElementById('productos');
-  const mensaje = document.getElementById('mensaje-productos');
-
-  mensaje.textContent = 'Cargando productos...';
-
-  // order('id') para que las cards salgan siempre en el mismo orden.
-  const { data, error } = await db.from('productos_practica').select('*').order('id');
-
-  if (error) {
-    mensaje.textContent = 'Error: ' + error.message;
-    return;
-  }
-
-  if (data.length === 0) {
-    mensaje.textContent = 'No hay productos todavía.';
-    contenedor.innerHTML = '';
-    return;
-  }
-
-  mensaje.textContent = data.length + ' productos';
-  // map() convierte cada producto en el HTML de su card; join('') las une.
-  contenedor.innerHTML = data.map(crearCard).join('');
-}
-
-document.getElementById('btn-ver').addEventListener('click', mostrarProductos);
-
-// ===== Buscar productos =====
-// Los botones usan buscarProductoPorId y buscarProductosPorNombre,
-// definidas al final de este archivo.
-
-document.getElementById('btn-buscar-id').addEventListener('click', async () => {
-  const contenedor = document.getElementById('productos');
-  const mensaje = document.getElementById('mensaje-productos');
-  const id = Number(document.getElementById('buscar-id').value);
-
-  if (!Number.isInteger(id) || id < 1) {
-    mensaje.textContent = 'Escribe un id válido.';
-    return;
-  }
-
-  // buscarProductoPorId devuelve null si no encuentra el producto.
-  const producto = await buscarProductoPorId(id);
-
-  if (!producto) {
-    mensaje.textContent = 'No existe un producto con id: ' + id;
-    contenedor.innerHTML = '';
-    return;
-  }
-
-  mensaje.textContent = 'Producto con id: ' + id;
-  contenedor.innerHTML = crearCard(producto);
-});
-
-document.getElementById('btn-buscar-nombre').addEventListener('click', async () => {
-  const contenedor = document.getElementById('productos');
-  const mensaje = document.getElementById('mensaje-productos');
-  const nombre = document.getElementById('buscar-nombre').value.trim();
-
-  if (!nombre) {
-    mensaje.textContent = 'Escribe un nombre para buscar.';
-    return;
-  }
-
-  // buscarProductosPorNombre devuelve [] si no encuentra nada.
-  const productos = await buscarProductosPorNombre(nombre);
-
-  if (productos.length === 0) {
-    mensaje.textContent = 'No hay productos con "' + nombre + '" en el nombre.';
-    contenedor.innerHTML = '';
-    return;
-  }
-
-  mensaje.textContent = productos.length + ' resultado(s) para "' + nombre + '"';
-  contenedor.innerHTML = productos.map(crearCard).join('');
-});
-
-//espacio para formulario de agregar producto
-document.getElementById('form-producto').addEventListener('submit', async (evento) => {
-  // Sin esto el navegador recarga la página al enviar el formulario.
+document.getElementById('form-eliminar').addEventListener('submit', async (evento) => {
   evento.preventDefault();
+  const id = Number(document.getElementById('eliminar-id').value);
+  const borrado = await eliminarProducto(id);
+  const aviso = document.getElementById('notificacion-mod');
 
-  const form = evento.target;
-  const mensaje = document.getElementById('mensaje-form');
-
-  // Armamos un objeto con la MISMA forma que productoNuevo, pero con
-  // los valores escritos en el formulario. Los inputs siempre entregan
-  // texto, por eso convertimos números, el checkbox y las categorías.
-  const producto = {
-    Nombre: form.Nombre.value.trim(),
-    descripcion: form.descripcion.value.trim() || null,
-    precio: Number(form.precio.value),
-    unidades: Number(form.unidades.value),
-    descuento: Number(form.descuento.value),
-    disponible: form.disponible.checked,
-    categoria: form.categoria.value.split(',').map(c => c.trim()).filter(c => c !== ''),
-    image_url: form.image_url.value.trim() || null
-  };
-
-  // Igual que con productoNuevo: no insertamos si el nombre ya existe.
-  const { data: existentes, error: errorBusqueda } = await db
-    .from('productos_practica')
-    .select('id')
-    .eq('Nombre', producto.Nombre);
-
-  if (errorBusqueda) {
-    mensaje.textContent = 'Error: ' + errorBusqueda.message;
-    return;
+  modalEliminar.close();
+  if (borrado) {
+    aviso.innerText = 'Producto #' + id + ' eliminado.';
+    cargarProductos();   // refresca las cards: la del producto borrado desaparece
+    document.getElementById('resultado-busqueda').innerHTML = '';
+  } else {
+    aviso.innerText = 'No se pudo eliminar el producto #' + id + '.';
   }
-
-  if (existentes.length > 0) {
-    mensaje.textContent = 'El producto ya existe en id: ' + existentes[0].id;
-    return;
-  }
-
-  const { data, error } = await db.from('productos_practica').insert([producto]).select();
-
-  if (error) {
-    mensaje.textContent = 'Error: ' + error.message;
-    return;
-  }
-
-  mensaje.textContent = 'Producto agregado a id: ' + data[0].id;
-  form.reset();
-  document.getElementById('btn-traer').click();
-  mostrarProductos();
 });
-
-
-// AHORA:
-async function buscarProductoPorId(id) {
-  const { data, error } = await db
-    .from('productos_practica')
-    .select('*')
-    .eq('id', id)    // eq = "equal" (igual a) — equivalente a find(p => p.id === id)
-    .single();         // single() = "espero exactamente una fila, dámela
-                        // como objeto, no como array de un elemento"
-
-  if (error) return null;
-  return data;
-}
-
-async function buscarProductosPorNombre(texto) {
-  const { data, error } = await db
-    .from('productos_practica')
-    .select('*')
-    .ilike('Nombre', `%${texto}%`);   // "Nombre" con N mayúscula, como en la tabla
-    // ilike = "like" insensible a mayúsculas/minúsculas.
-    // los símbolos % significan "cualquier texto antes/después" —
-    // equivalente a .toLowerCase().includes(texto)
-
-  if (error) return [];
-  return data;
-}

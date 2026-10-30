@@ -38,22 +38,58 @@
   </form>
   <div id="resultado-busqueda"></div>
 
-  <!-- Formulario para modificarProducto(): solo se cambian los campos que llenes -->
-  <form id="form-modificar">
-    <input id="input-mod-id" type="number" placeholder="ID a modificar" min="1" required>
-    <input id="input-mod-nombre" type="text" placeholder="Nuevo nombre">
-    <input id="input-mod-precio" type="number" placeholder="Nuevo precio" min="0" step="any">
-    <input id="input-mod-unidades" type="number" placeholder="Nuevas unidades" min="0" step="1">
-    <input id="input-mod-descuento" type="number" placeholder="Nuevo descuento %" min="0" max="100" step="any">
-    <button type="submit">Modificar producto</button>
-  </form>
   <div id="notificacion-mod"></div>
 
   <button id="btn-traer">Traer productos</button>
   <div id="resultado"></div>
+  <!-- Lista de productos con botón "Editar" (abre el modal) -->
+  <div id="lista-productos"></div>
    <div id="resultado2"></div>
    <div id="resultado3"></div>
    <div id="resultado4"></div>
+
+  <!-- Modal para modificarProducto(): <dialog> es un elemento nativo de
+       HTML que ya sabe abrirse encima de la página (showModal()) y
+       cerrarse con la tecla Esc -->
+  <dialog id="modal-editar">
+    <form id="form-editar">
+      <h2>Editar producto <span id="modal-titulo-id"></span></h2>
+      <input id="edit-id" type="hidden">
+      <label>Nombre
+        <input id="edit-nombre" type="text" required>
+      </label>
+      <label>Descripción
+        <input id="edit-descripcion" type="text">
+      </label>
+      <label>Precio
+        <input id="edit-precio" type="number" min="0" step="any" required>
+      </label>
+      <label>Unidades
+        <input id="edit-unidades" type="number" min="0" step="1" required>
+      </label>
+      <label>Descuento %
+        <input id="edit-descuento" type="number" min="0" max="100" step="any">
+      </label>
+      <div class="modal-botones">
+        <button type="button" id="btn-cancelar">Cancelar</button>
+        <button type="submit">Guardar cambios</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- Modal de confirmación para eliminarProducto() -->
+  <dialog id="modal-eliminar">
+    <form id="form-eliminar">
+      <h2>¿Eliminar producto?</h2>
+      <input id="eliminar-id" type="hidden">
+      <p>Vas a eliminar <strong id="eliminar-nombre"></strong>.</p>
+      <p>Esta acción no se puede deshacer.</p>
+      <div class="modal-botones">
+        <button type="button" id="btn-cancelar-eliminar">Cancelar</button>
+        <button type="submit">Sí, eliminar</button>
+      </div>
+    </form>
+  </dialog>
   <!-- supabaseClient.js crea "db" (sección 4.3): el cliente ya
        conectado a tu proyecto de Supabase. Lo vamos a usar en
        prueba.js, por eso tiene que cargarse ANTES que ese archivo -->
