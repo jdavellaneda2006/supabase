@@ -135,3 +135,16 @@ document.getElementById('btn-logout').addEventListener('click', async () => {
   await db.auth.signOut();
   mostrarEstadoSesion();
 });
+async function mostrarEstadoSesion() {
+  const { data } = await db.auth.getUser();
+  const estado = document.getElementById('estado-sesion');
+
+  if (data.user) {
+    estado.textContent = `Sesión iniciada como ${data.user.email}`;
+  } else {
+    estado.textContent = 'No has iniciado sesión.';
+  }
+}
+
+// Al cargar la página, revisa si ya había una sesión activa
+mostrarEstadoSesion();
