@@ -5,39 +5,53 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Mi cuenta</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anton&family=Montserrat:wght@400;600&family=Pacifico&display=swap" />
+    <link rel="stylesheet" href="css/gta6.css" />
   </head>
   <body>
-    <section id="panel-cuenta">
-      <h2>Mi cuenta</h2>
-      <p id="estado-sesion">No has iniciado sesión.</p>
+    <header class="encabezado">
+      <h1>Mi cuenta<span>Zona de clientes</span></h1>
+    </header>
 
-      <form id="form-registro">
-        <h3>Registrarme</h3>
-        <label for="registro-nombre">Nombre</label>
-        <input id="registro-nombre" type="text" required />
+    <main>
+      <section id="panel-cuenta">
+        <p id="estado-sesion">No has iniciado sesión.</p>
 
-        <label for="registro-correo">Correo</label>
-        <input id="registro-correo" type="email" required />
+        <div id="formularios-cuenta">
+          <form id="form-login">
+            <h2>Iniciar sesión</h2>
+            <label for="login-correo">Correo</label>
+            <input id="login-correo" type="email" required />
 
-        <label for="registro-password">Contraseña</label>
-        <input id="registro-password" type="password" minlength="6" required />
+            <label for="login-password">Contraseña</label>
+            <input id="login-password" type="password" required />
 
-        <button type="submit">Crear cuenta</button>
-      </form>
+            <button type="submit">Iniciar sesión</button>
+          </form>
 
-      <form id="form-login">
-        <h3>Iniciar sesión</h3>
-        <label for="login-correo">Correo</label>
-        <input id="login-correo" type="email" required />
+          <form id="form-registro">
+            <h2>Registrarme</h2>
+            <label for="registro-nombre">Nombre</label>
+            <input id="registro-nombre" type="text" required />
 
-        <label for="login-password">Contraseña</label>
-        <input id="login-password" type="password" required />
+            <label for="registro-correo">Correo</label>
+            <input id="registro-correo" type="email" required />
 
-        <button type="submit">Iniciar sesión</button>
-      </form>
+            <label for="registro-password">Contraseña</label>
+            <input id="registro-password" type="password" minlength="6" required />
 
-      <button id="btn-logout" type="button">Cerrar sesión</button>
-    </section>
+            <button type="submit">Crear cuenta</button>
+          </form>
+        </div>
+
+        <!-- Solo se ve con la sesión iniciada: lo controla mostrarEstadoSesion() -->
+        <div id="mis-datos" hidden>
+          <h2>Mis datos</h2>
+          <dl id="lista-datos"></dl>
+          <button id="btn-logout" type="button">Cerrar sesión</button>
+        </div>
+      </section>
+    </main>
 
     <script src="js/supabaseClient.js"></script>
     <script src="js/cliente.js"></script>

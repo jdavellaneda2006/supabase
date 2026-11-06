@@ -74,9 +74,10 @@ document.getElementById('form-registro').addEventListener('submit', async (event
   );
 
   if (cliente) {
+    form.reset(); // vacía los 3 campos del formulario, para la próxima persona
+    await mostrarEstadoSesion(); // signUp() ya dejó la sesión iniciada
     document.getElementById('estado-sesion').textContent =
       'Cuenta creada. Registro completado.';
-    form.reset(); // vacía los 3 campos del formulario, para la próxima persona
   } else {
     document.getElementById('estado-sesion').textContent =
       `No se pudo crear la cuenta: ${error}`;
@@ -139,10 +140,53 @@ async function mostrarEstadoSesion() {
   const { data } = await db.auth.getUser();
   const estado = document.getElementById('estado-sesion');
 
+  // Con sesión se ven los datos; sin sesión, los formularios.
+  document.getElementById('formularios-cuenta').hidden = Boolean(data.user);
+  document.getElementById('mis-datos').hidden = !data.user;
+
   if (data.user) {
     estado.textContent = `Sesión iniciada como ${data.user.email}`;
+    await mostrarMisDatos(data.user);
   } else {
     estado.textContent = 'No has iniciado sesión.';
+  }
+}
+
+// Trae la fila de esta persona en clientes_Prueba. La política de RLS ya
+// impide leer filas ajenas; el .eq() indica cuál de las propias queremos.
+async function mostrarMisDatos(usuario) {
+  const { data: cliente, error } = await db
+    .from('clientes_Prueba')
+    .select('nombre, correo, telefono, direccion, ciudad, rol')
+    .eq('auth_id', usuario.id)
+    .maybeSingle(); // devuelve null, sin error, si la cuenta no tiene fila
+
+  if (error) {
+    console.log('Error al leer tus datos:', error);
+  }
+
+  const datos = [
+    ['Nombre', cliente?.nombre],
+    ['Correo', cliente?.correo ?? usuario.email],
+    ['Teléfono', cliente?.telefono],
+    ['Dirección', cliente?.direccion],
+    ['Ciudad', cliente?.ciudad],
+    ['Rol', cliente?.rol],
+  ];
+
+  const lista = document.getElementById('lista-datos');
+  lista.replaceChildren(); // vacía los datos de la sesión anterior
+
+  // textContent, no innerHTML: lo que alguien escriba en su nombre se muestra
+  // como texto y nunca se ejecuta como código en la página.
+  for (const [etiqueta, valor] of datos) {
+    const titulo = document.createElement('dt');
+    titulo.textContent = etiqueta;
+
+    const contenido = document.createElement('dd');
+    contenido.textContent = valor || 'Sin registrar';
+
+    lista.append(titulo, contenido);
   }
 }
 
