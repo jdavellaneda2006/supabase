@@ -646,3 +646,145 @@ main {
   margin: 0;
   color: rgba(255, 244, 230, 0.75);
 }
+
+/* ===== Página de cuenta (cliente.html) ===== */
+
+#panel-cuenta {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* Los formularios usan display, que anularía el atributo hidden */
+#panel-cuenta [hidden] { display: none; }
+
+#estado-sesion {
+  margin: 0;
+  padding: 12px 18px;
+  font-weight: 600;
+  text-align: center;
+  background: rgba(26, 11, 46, 0.75);
+  border: 2px solid var(--turquesa);
+  border-radius: 10px;
+  box-shadow: 0 0 18px rgba(45, 226, 230, 0.5);
+  overflow-wrap: anywhere;
+}
+
+#formularios-cuenta {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
+  gap: 20px;
+  align-items: start;
+}
+
+#form-login,
+#form-registro,
+#mis-datos {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 22px;
+  background: rgba(26, 11, 46, 0.8);
+  border: 2px solid var(--rosa);
+  border-radius: 12px;
+  box-shadow: 0 0 18px rgba(255, 46, 136, 0.6);
+  backdrop-filter: blur(4px);
+}
+
+#form-registro {
+  border-color: var(--naranja);
+  box-shadow: 0 0 18px rgba(255, 138, 61, 0.6);
+}
+
+#mis-datos {
+  width: 100%;
+  max-width: 620px;
+  margin-inline: auto;
+  border-color: var(--amarillo);
+  box-shadow: 0 0 18px rgba(255, 209, 102, 0.6);
+}
+
+#panel-cuenta h2 {
+  margin: 0 0 8px;
+  font-family: 'Anton', sans-serif;
+  font-size: 1.7rem;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--amarillo);
+  text-shadow: 3px 3px 0 var(--azul-noche);
+}
+
+#panel-cuenta label {
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+#panel-cuenta input {
+  width: 100%;
+  margin-bottom: 6px;
+  padding: 12px;
+  font-family: 'Montserrat', sans-serif;
+  font-size: 1rem;
+  color: var(--texto);
+  background: rgba(255, 255, 255, 0.08);
+  border: 2px solid var(--turquesa);
+  border-radius: 6px;
+}
+
+#panel-cuenta input:focus {
+  outline: none;
+  box-shadow: 0 0 12px var(--turquesa);
+}
+
+#panel-cuenta button {
+  margin-top: 8px;
+  padding: 14px;
+  font-family: 'Anton', sans-serif;
+  font-size: 1.15rem;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--azul-noche);
+  background: linear-gradient(90deg, var(--amarillo), var(--naranja), var(--rosa));
+  border: 3px solid var(--azul-noche);
+  border-radius: 6px;
+  box-shadow: 5px 5px 0 var(--azul-noche);
+  cursor: pointer;
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+
+#panel-cuenta button:hover {
+  transform: translate(-2px, -2px);
+  box-shadow: 7px 7px 0 var(--azul-noche), 0 0 22px var(--rosa);
+}
+
+#panel-cuenta button:active {
+  transform: translate(3px, 3px);
+  box-shadow: 2px 2px 0 var(--azul-noche);
+}
+
+/* Lista de datos: etiqueta a la izquierda, valor a la derecha */
+#lista-datos {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 0 18px;
+  margin: 0;
+}
+
+#lista-datos dt,
+#lista-datos dd {
+  margin: 0;
+  padding: 10px 0;
+  border-bottom: 1px dashed rgba(255, 244, 230, 0.25);
+}
+
+#lista-datos dt {
+  font-family: 'Anton', sans-serif;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--turquesa);
+}
+
+#lista-datos dd {
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
