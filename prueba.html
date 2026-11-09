@@ -14,16 +14,22 @@
 </head>
 <body>
 
-  <!-- ===== Encabezado ===== -->
-  <header class="encabezado">
-    <h1>Productos<span>Vice City Edition</span></h1>
+  <!-- ===== Barra superior: queda fija arriba al hacer scroll ===== -->
+  <nav class="barra-superior">
     <!-- Menú: cada enlace salta a la sección con ese id -->
-    <nav class="menu">
+    <div class="menu">
       <a href="#sec-agregar">Agregar</a>
       <a href="#sec-buscar">Buscar</a>
       <a href="#sec-catalogo">Catálogo</a>
       <a href="#sec-resumen">Resumen</a>
-    </nav>
+    </div>
+    <!-- Icono VI: abre la ventana "Mi cuenta" (login o datos del cliente) -->
+    <button id="btn-cuenta" class="icono-vi" type="button" title="Mi cuenta" aria-label="Mi cuenta">VI</button>
+  </nav>
+
+  <!-- ===== Encabezado ===== -->
+  <header class="encabezado">
+    <h1>Productos<span>Vice City Edition</span></h1>
   </header>
 
   <main>
@@ -91,6 +97,64 @@
 
   </main>
 
+  <!-- Ventana "Mi cuenta": la abre el icono VI de la barra superior.
+       La lógica está en js/cliente.js -->
+  <dialog id="modal-cuenta">
+    <button id="btn-cerrar-cuenta" class="btn-cerrar" type="button" aria-label="Cerrar">&times;</button>
+    <div id="panel-cuenta">
+      <p id="estado-sesion">No has iniciado sesión.</p>
+
+      <!-- Sin sesión se ve el formulario; con sesión, la tarjeta "Mis datos" -->
+      <div id="formularios-cuenta">
+        <form id="form-login">
+          <h2>Iniciar sesión</h2>
+          <label for="login-correo">Correo</label>
+          <input id="login-correo" type="email" required>
+
+          <label for="login-password">Contraseña</label>
+          <input id="login-password" type="password" required>
+
+          <button type="submit">Iniciar sesión</button>
+        </form>
+      </div>
+
+      <div id="mis-datos" hidden>
+        <h2>Mis datos</h2>
+
+        <!-- Vista: mostrarMisDatos() llena esta lista con las columnas
+             de clientes_Prueba -->
+        <div id="vista-datos">
+          <dl id="lista-datos"></dl>
+          <div class="botones-cuenta">
+            <button id="btn-editar-datos" type="button">Editar mis datos</button>
+            <button id="btn-logout" class="btn-secundario" type="button">Cerrar sesión</button>
+          </div>
+        </div>
+
+        <!-- Edición: actualizarCliente() hace el UPDATE con estos campos.
+             El correo no se edita aquí porque es el que usas para entrar -->
+        <form id="form-editar-cliente" hidden>
+          <label for="editar-cliente-nombre">Nombre</label>
+          <input id="editar-cliente-nombre" type="text" required>
+
+          <label for="editar-cliente-telefono">Teléfono</label>
+          <input id="editar-cliente-telefono" type="tel">
+
+          <label for="editar-cliente-ciudad">Ciudad</label>
+          <input id="editar-cliente-ciudad" type="text">
+
+          <label for="editar-cliente-direccion">Dirección</label>
+          <input id="editar-cliente-direccion" type="text">
+
+          <div class="botones-cuenta">
+            <button type="submit">Guardar cambios</button>
+            <button id="btn-cancelar-edicion" class="btn-secundario" type="button">Cancelar</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </dialog>
+
   <!-- Modal para modificarProducto(): <dialog> es un elemento nativo de
        HTML que ya sabe abrirse encima de la página (showModal()) y
        cerrarse con la tecla Esc -->
@@ -139,5 +203,8 @@
   <script src="js/supabaseClient.js"></script>
   <!-- prueba.js: aquí escribes el código de los Pasos 2, 3 y 4 -->
   <script src="js/prueba.js"></script>
+  <!-- cliente.js: inicio de sesión y tarjeta "Mis datos" (la misma
+       lógica que usa cliente.html) -->
+  <script src="js/cliente.js"></script>
 </body>
 </html>

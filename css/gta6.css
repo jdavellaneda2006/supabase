@@ -788,3 +788,125 @@ main {
   font-weight: 600;
   overflow-wrap: anywhere;
 }
+
+/* ===== Barra superior con el icono VI (prueba.html) ===== */
+
+.barra-superior {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  width: 100%;
+  max-width: 1100px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 16px;
+  background: rgba(26, 11, 46, 0.85);
+  border: 2px solid var(--rosa);
+  border-radius: 999px;
+  box-shadow: 0 0 18px rgba(255, 46, 136, 0.5);
+  backdrop-filter: blur(6px);
+}
+
+.barra-superior .menu { justify-content: flex-start; }
+
+/* Al saltar a una sección, que la barra fija no la tape */
+.seccion { scroll-margin-top: 90px; }
+
+/* Icono "VI": círculo con las letras en el degradado del título */
+.icono-vi {
+  flex: none;
+  width: 54px;
+  height: 54px;
+  padding: 0;
+  font-family: 'Anton', sans-serif;
+  font-size: 1.6rem;
+  letter-spacing: 1px;
+  color: var(--amarillo);
+  background: radial-gradient(circle at 30% 30%, var(--morado), var(--azul-noche));
+  border: 3px solid var(--rosa);
+  border-radius: 50%;
+  box-shadow: 0 0 14px var(--rosa);
+  text-shadow: 2px 2px 0 var(--rosa);
+  cursor: pointer;
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+
+.icono-vi:hover {
+  transform: scale(1.08);
+  box-shadow: 0 0 24px var(--rosa), 0 0 8px var(--amarillo);
+}
+
+/* Con la sesión iniciada el icono cambia a turquesa */
+.icono-vi.con-sesion {
+  border-color: var(--turquesa);
+  box-shadow: 0 0 16px var(--turquesa);
+  text-shadow: 2px 2px 0 var(--turquesa);
+}
+
+/* Ventana "Mi cuenta". Sin padding propio, para que un clic en el
+   dialog mismo sea solo el fondo (eso es lo que la cierra en cliente.js) */
+#modal-cuenta {
+  width: min(560px, calc(100% - 32px));
+  max-height: calc(100% - 32px);
+  padding: 0;
+  color: var(--texto);
+  background: linear-gradient(160deg, var(--azul-noche), var(--morado));
+  border: 2px solid var(--turquesa);
+  border-radius: 14px;
+  box-shadow: 0 0 30px rgba(45, 226, 230, 0.6);
+}
+
+#modal-cuenta::backdrop {
+  background: rgba(26, 11, 46, 0.7);
+  backdrop-filter: blur(3px);
+}
+
+#modal-cuenta #panel-cuenta { padding: 56px 20px 20px; }
+
+#modal-cuenta .btn-cerrar {
+  position: absolute;
+  top: 10px;
+  right: 12px;
+  width: 38px;
+  height: 38px;
+  font-size: 1.6rem;
+  line-height: 1;
+  color: var(--texto);
+  background: transparent;
+  border: 2px solid var(--texto);
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+#modal-cuenta .btn-cerrar:hover { color: var(--azul-noche); background: var(--turquesa); border-color: var(--turquesa); }
+
+/* Formulario de edición dentro de "Mis datos" */
+#vista-datos,
+#form-editar-cliente {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.botones-cuenta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.botones-cuenta button { flex: 1 1 160px; }
+
+#panel-cuenta .btn-secundario {
+  color: var(--texto);
+  background: transparent;
+  border-color: var(--texto);
+  box-shadow: none;
+}
+
+#panel-cuenta .btn-secundario:hover {
+  color: var(--azul-noche);
+  background: var(--texto);
+  box-shadow: none;
+}

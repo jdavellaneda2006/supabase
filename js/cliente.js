@@ -54,7 +54,9 @@ async function registrarCliente(nombre, correo, contrasena) {
 // otra página de servidor, décadas atrás. Como aquí todo lo manejamos con
 // JavaScript (sin recargar nada), hay que apagar ese comportamiento a
 // propósito.
-document.getElementById('form-registro').addEventListener('submit', async (event) => {
+// El "?." hace que esta línea no falle en páginas sin formulario de
+// registro (prueba.html solo tiene el de iniciar sesión).
+document.getElementById('form-registro')?.addEventListener('submit', async (event) => {
 
   // event.preventDefault() le dice al navegador "no hagas lo que harías
   // normalmente con este evento" — en este caso, no recargues la página.
@@ -136,6 +138,13 @@ document.getElementById('btn-logout').addEventListener('click', async () => {
   await db.auth.signOut();
   mostrarEstadoSesion();
 });
+// Usuario de Auth y fila de clientes_Prueba de la sesión actual. Los
+// guardamos para rellenar el formulario de edición sin volver a consultar.
+let usuarioActual = null;
+let clienteActual = null;
+
+const COLUMNAS_CLIENTE = 'nombre, correo, telefono, direccion, ciudad, rol';
+
 async function mostrarEstadoSesion() {
   const { data } = await db.auth.getUser();
   const estado = document.getElementById('estado-sesion');
@@ -143,11 +152,17 @@ async function mostrarEstadoSesion() {
   // Con sesión se ven los datos; sin sesión, los formularios.
   document.getElementById('formularios-cuenta').hidden = Boolean(data.user);
   document.getElementById('mis-datos').hidden = !data.user;
+  cerrarEdicion(); // siempre se vuelve a la vista de datos
 
+  // El icono VI brilla en turquesa mientras hay sesión (solo en prueba.html)
+  document.getElementById('btn-cuenta')?.classList.toggle('con-sesion', Boolean(data.user));
+
+  usuarioActual = data.user;
   if (data.user) {
     estado.textContent = `Sesión iniciada como ${data.user.email}`;
     await mostrarMisDatos(data.user);
   } else {
+    clienteActual = null;
     estado.textContent = 'No has iniciado sesión.';
   }
 }
@@ -157,13 +172,25 @@ async function mostrarEstadoSesion() {
 async function mostrarMisDatos(usuario) {
   const { data: cliente, error } = await db
     .from('clientes_Prueba')
-    .select('nombre, correo, telefono, direccion, ciudad, rol')
+    .select(COLUMNAS_CLIENTE)
     .eq('auth_id', usuario.id)
     .maybeSingle(); // devuelve null, sin error, si la cuenta no tiene fila
 
   if (error) {
     console.log('Error al leer tus datos:', error);
   }
+
+  pintarMisDatos(cliente, usuario);
+}
+
+// Dibuja la lista "Mis datos". Se separa de mostrarMisDatos() para poder
+// reutilizarla después del UPDATE con la fila que devuelve Supabase.
+function pintarMisDatos(cliente, usuario) {
+  clienteActual = cliente;
+
+  // Sin fila en clientes_Prueba no hay nada que editar
+  const botonEditar = document.getElementById('btn-editar-datos');
+  if (botonEditar) botonEditar.hidden = !cliente;
 
   const datos = [
     ['Nombre', cliente?.nombre],
@@ -189,6 +216,101 @@ async function mostrarMisDatos(usuario) {
     lista.append(titulo, contenido);
   }
 }
+
+// ===== UPDATE: editar los datos del cliente =====
+
+// Igual que modificarProducto() en prueba.js: .update() con los cambios y
+// .eq() para elegir la fila. Aquí la fila se busca por auth_id (el uuid de
+// la sesión), no por id, y la política de RLS solo deja tocar la propia.
+async function actualizarCliente(authId, cambios) {
+  const { data, error } = await db
+    .from('clientes_Prueba')
+    .update(cambios)
+    .eq('auth_id', authId)
+    .select(COLUMNAS_CLIENTE);
+
+  if (error) {
+    console.log('Error al actualizar tus datos:', error);
+    return { error: error.message };
+  }
+
+  // Si RLS no deja actualizar la fila, Supabase NO da error: devuelve un
+  // array vacío. Por eso hay que revisar que haya llegado algo.
+  if (data.length === 0) {
+    return { error: 'no se encontró tu perfil o no tienes permiso para editarlo' };
+  }
+
+  return { cliente: data[0] };
+}
+
+// Muestra el formulario con los valores actuales del cliente
+function abrirEdicion() {
+  if (!clienteActual) return;
+
+  document.getElementById('editar-cliente-nombre').value = clienteActual.nombre ?? '';
+  document.getElementById('editar-cliente-telefono').value = clienteActual.telefono ?? '';
+  document.getElementById('editar-cliente-ciudad').value = clienteActual.ciudad ?? '';
+  document.getElementById('editar-cliente-direccion').value = clienteActual.direccion ?? '';
+
+  document.getElementById('vista-datos').hidden = true;
+  document.getElementById('form-editar-cliente').hidden = false;
+  document.getElementById('editar-cliente-nombre').focus();
+}
+
+// Vuelve a la lista de datos. El "?." es porque cliente.html no tiene
+// formulario de edición.
+function cerrarEdicion() {
+  const form = document.getElementById('form-editar-cliente');
+  if (!form) return;
+  form.hidden = true;
+  document.getElementById('vista-datos').hidden = false;
+}
+
+document.getElementById('btn-editar-datos')?.addEventListener('click', abrirEdicion);
+document.getElementById('btn-cancelar-edicion')?.addEventListener('click', cerrarEdicion);
+
+document.getElementById('form-editar-cliente')?.addEventListener('submit', async (event) => {
+  event.preventDefault();
+  if (!usuarioActual) return;
+
+  // Un campo vacío se guarda como null ("Sin registrar"), no como texto vacío
+  const valor = (id) => document.getElementById(id).value.trim() || null;
+
+  // Solo estas 4 columnas: correo, rol y auth_id no se cambian desde aquí
+  const cambios = {
+    nombre: valor('editar-cliente-nombre'),
+    telefono: valor('editar-cliente-telefono'),
+    ciudad: valor('editar-cliente-ciudad'),
+    direccion: valor('editar-cliente-direccion'),
+  };
+
+  const { cliente, error } = await actualizarCliente(usuarioActual.id, cambios);
+  const estado = document.getElementById('estado-sesion');
+
+  if (cliente) {
+    pintarMisDatos(cliente, usuarioActual);
+    cerrarEdicion();
+    estado.textContent = 'Datos actualizados.';
+  } else {
+    estado.textContent = `No se pudieron guardar los cambios: ${error}`;
+  }
+});
+
+// ===== Ventana "Mi cuenta" (icono VI de la barra superior, prueba.html) =====
+const modalCuenta = document.getElementById('modal-cuenta');
+
+document.getElementById('btn-cuenta')?.addEventListener('click', () => {
+  modalCuenta.showModal();
+});
+
+document.getElementById('btn-cerrar-cuenta')?.addEventListener('click', () => {
+  modalCuenta.close();
+});
+
+// Un clic en el fondo oscuro (fuera de la ventana) también la cierra
+modalCuenta?.addEventListener('click', (event) => {
+  if (event.target === modalCuenta) modalCuenta.close();
+});
 
 // Al cargar la página, revisa si ya había una sesión activa
 mostrarEstadoSesion();
