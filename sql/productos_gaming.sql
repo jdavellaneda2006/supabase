@@ -4,7 +4,7 @@
 -- GTA 6 (id 7) no se toca.
 -- Los ids 1, 8, 10, 11 y 12 se reutilizan con productos nuevos (UPDATE)
 -- y se agregan 9 productos más (INSERT), para un total de 15.
--- El descuento va como fracción (0.1 = 10%), igual que en js/prueba.js.
+-- El descuento va como fracción (0.1 = 10%), igual que en js/admin.js.
 -- Se puede ejecutar más de una vez: el INSERT salta los nombres que ya existen.
 
 begin;

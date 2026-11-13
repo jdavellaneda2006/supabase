@@ -1,3 +1,131 @@
+// ===== Acceso de administradores =====
+// La página arranca mostrando SOLO el login. La gestión de productos
+// (#panel-admin) se muestra cuando hay sesión Y esa cuenta tiene su fila
+// en la tabla "admins". Ocultar el panel es solo visual: lo que de verdad
+// protege los datos son las políticas RLS de Supabase.
+
+const zonaAcceso   = document.getElementById('zona-acceso-admin');
+const panelAdmin   = document.getElementById('panel-admin');
+const formLogin    = document.getElementById('form-login-admin');
+const formRegistro = document.getElementById('form-registro-admin');
+const estadoAdmin  = document.getElementById('estado-sesion-admin');
+
+// Cambia entre el cuadro de login y el de registro
+function mostrarFormulario(cual) {
+  formLogin.hidden    = cual !== 'login';
+  formRegistro.hidden = cual !== 'registro';
+}
+
+document.getElementById('btn-ir-registro').addEventListener('click', () => {
+  estadoAdmin.innerText = 'Crea tu cuenta de administrador.';
+  mostrarFormulario('registro');
+});
+
+document.getElementById('btn-ir-login').addEventListener('click', () => {
+  estadoAdmin.innerText = 'Inicia sesión para gestionar los productos.';
+  mostrarFormulario('login');
+});
+
+formRegistro.addEventListener('submit', async (evento) => {
+  evento.preventDefault();
+  const form = evento.target;
+
+  const { data, error } = await db.auth.signUp({
+    email: form.elements['admin-registro-correo'].value,
+    password: form.elements['admin-registro-password'].value,
+  });
+
+  if (error) {
+    estadoAdmin.innerText = 'Error al registrar: ' + error.message;
+    return;
+  }
+
+  const { error: errorPerfil } = await db.from('admins').insert([{
+    id: data.user.id,
+    nombre: form.elements['admin-registro-nombre'].value.trim(),
+    correo: form.elements['admin-registro-correo'].value.trim(),
+  }]);
+
+  if (errorPerfil) {
+    estadoAdmin.innerText = 'Cuenta creada, pero falló el perfil: ' + errorPerfil.message;
+    return;
+  }
+
+  form.reset();
+
+  // Si Supabase ya abrió la sesión al registrar, entramos directo al panel.
+  // Si pide confirmar el correo, no hay sesión todavía: volvemos al login.
+  if (data.session) {
+    mostrarEstadoSesionAdmin();
+  } else {
+    mostrarFormulario('login');
+    estadoAdmin.innerText = 'Cuenta de administrador creada. Ya puedes iniciar sesión.';
+  }
+});
+
+formLogin.addEventListener('submit', async (evento) => {
+  evento.preventDefault();
+  const form = evento.target;
+
+  const { error } = await db.auth.signInWithPassword({
+    email: form.elements['admin-login-correo'].value,
+    password: form.elements['admin-login-password'].value,
+  });
+
+  if (error) {
+    estadoAdmin.innerText = 'Error al iniciar sesión: ' + error.message;
+    return;
+  }
+
+  form.reset();
+  mostrarEstadoSesionAdmin();
+});
+
+// Muestra el login o el panel según la sesión actual
+async function mostrarEstadoSesionAdmin() {
+  const { data } = await db.auth.getUser();
+
+  if (!data.user) {
+    bloquearPanel('Inicia sesión para gestionar los productos.');
+    return;
+  }
+
+  // Importante: tener sesión no basta — confirmamos que además exista
+  // su fila en admins. maybeSingle() devuelve null (sin error) si no hay fila.
+  const { data: perfil } = await db
+    .from('admins')
+    .select('nombre')
+    .eq('id', data.user.id)
+    .maybeSingle();
+
+  if (!perfil) {
+    // Es una cuenta válida pero no de administrador (por ejemplo, un
+    // cliente): cerramos su sesión para que pueda entrar con otra
+    await db.auth.signOut();
+    bloquearPanel('Esa cuenta no es de administrador.');
+    return;
+  }
+
+  document.getElementById('nombre-admin').innerText = 'Admin: ' + perfil.nombre;
+  zonaAcceso.hidden = true;
+  panelAdmin.hidden = false;
+  cargarProductos();   // el catálogo aparece ya cargado al entrar
+}
+
+function bloquearPanel(mensaje) {
+  panelAdmin.hidden = true;
+  zonaAcceso.hidden = false;
+  mostrarFormulario('login');
+  estadoAdmin.innerText = mensaje;
+}
+
+document.getElementById('btn-logout-admin').addEventListener('click', async () => {
+  await db.auth.signOut();
+  mostrarEstadoSesionAdmin();
+});
+
+mostrarEstadoSesionAdmin();
+
 // La lectura de productos ahora es una función con nombre, para poder
 // volver a llamarla después de editar un producto (y refrescar la lista)
 async function cargarProductos() {
@@ -39,77 +167,20 @@ async function cargarProductos() {
 
   // Cards de todos los productos, cada una con su botón "Editar"
   document.getElementById('lista-productos').innerHTML =
-    '<div class="grid-cards">' + data.map(crearCard).join('') + '</div>';
+    '<div class="grid-cards">' + data.map(crearCardAdmin).join('') + '</div>';
 }
 
 document.getElementById('btn-traer').addEventListener('click', cargarProductos);
 
-// ===== Cards de productos (traídas de la versión del 26 de octubre) =====
-
-// Evita que un texto de la tabla (ej. un nombre con "<") se interprete como
-// HTML al meterlo con innerHTML
-function escaparHTML(texto) {
-  return String(texto ?? '')
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#39;');
-}
-
-function formatearPrecio(valor) {
-  return Number(valor).toLocaleString('es-CO', {
-    style: 'currency',
-    currency: 'COP',
-    maximumFractionDigits: 0
-  });
-}
-
-// Arma la card de un producto con su botón "Editar". El botón guarda el id
-// en data-id para saber qué producto abrir en el modal.
-function crearCard(producto) {
-  const descuento = Number(producto.descuento) || 0;
-  const precioFinal = producto.precio * (1 - descuento);
-
-  const tieneImagen = /^https?:\/\//.test(producto.image_url || '');
-  const imagen = tieneImagen
-    ? `<img src="${escaparHTML(producto.image_url)}" alt="${escaparHTML(producto.Nombre)}">`
-    : `<div class="card-sin-imagen">Sin imagen</div>`;
-
-  const etiquetaDescuento = descuento > 0
-    ? `<span class="card-descuento">-${Math.round(descuento * 100)}%</span>`
-    : '';
-
-  const precio = descuento > 0
-    ? `<s>${formatearPrecio(producto.precio)}</s>${formatearPrecio(precioFinal)}`
-    : formatearPrecio(producto.precio);
-
-  const categorias = (producto.categoria || [])
-    .map(c => `<span>${escaparHTML(c)}</span>`)
-    .join('');
-
-  const estado = producto.disponible
-    ? '<span class="disponible">● Disponible</span>'
-    : '<span class="agotado">● Agotado</span>';
-
-  return `
-    <article class="card">
-      <div class="card-imagen">${imagen}${etiquetaDescuento}</div>
-      <div class="card-cuerpo">
-        <h3>#${producto.id} ${escaparHTML(producto.Nombre)}</h3>
-        ${producto.descripcion ? `<p class="card-descripcion">${escaparHTML(producto.descripcion)}</p>` : ''}
-        <div class="card-categorias">${categorias}</div>
-        <div class="card-precio">${precio}</div>
-        <div class="card-pie">
-          ${estado}
-          <span>${producto.unidades ?? 0} unidades</span>
-        </div>
-        <div class="card-botones">
-          <button class="btn-editar" data-id="${producto.id}">Editar</button>
-          <button class="btn-eliminar" data-id="${producto.id}" data-nombre="${escaparHTML(producto.Nombre)}">Eliminar</button>
-        </div>
-      </div>
-    </article>`;
+// ===== Cards de productos =====
+// crearCard(), escaparHTML() y formatearPrecio() están en js/cards.js
+// (compartido con la tienda de cliente.html). Aquí solo ponemos los botones
+// de administración: Editar y Eliminar. El botón guarda el id en data-id
+// para saber qué producto abrir en el modal.
+function crearCardAdmin(producto) {
+  return crearCard(producto, `
+    <button class="btn-editar" data-id="${producto.id}">Editar</button>
+    <button class="btn-eliminar" data-id="${producto.id}" data-nombre="${escaparHTML(producto.Nombre)}">Eliminar</button>`);
 }
 // ANTES (si lo hubieras hecho con localStorage, como en la semana 7):
 // (queda comentado: usa siguienteId, productos y guardarProductos, que no
@@ -218,7 +289,7 @@ function mostrarBusqueda(lista) {
     div.innerText = 'No se encontraron productos.';
     return;
   }
-  div.innerHTML = '<div class="grid-cards">' + lista.map(crearCard).join('') + '</div>';
+  div.innerHTML = '<div class="grid-cards">' + lista.map(crearCardAdmin).join('') + '</div>';
 }
 
 document.getElementById('form-buscar-id').addEventListener('submit', async (evento) => {
@@ -257,8 +328,19 @@ async function modificarProducto(id, cambios) {
     .eq('id', id)        // ...de la fila donde el id coincida
     .select();
 
-  if (error) return null;
-  return data[0];
+  // Devolvemos un objeto con el error para poder mostrar POR QUÉ falló
+  if (error) {
+    console.log('Error al modificar:', error);
+    return { error: error.message };
+  }
+
+  // Ojo: si el RLS de Supabase no te deja editar, NO llega un error, sino
+  // un array vacío (0 filas cambiadas). Por eso lo revisamos aparte.
+  if (data.length === 0) {
+    return { error: 'No tienes permiso para editar (inicia sesión con una cuenta admin) o el producto ya no existe.' };
+  }
+
+  return { producto: data[0] };
 }
 
 // ===== Modal de edición =====
@@ -283,6 +365,7 @@ async function abrirModalEditar(id) {
   document.getElementById('edit-descuento').value =
     producto.descuento == null ? '' : Math.round(producto.descuento * 100);
 
+  document.getElementById('aviso-editar').innerText = '';   // limpia el aviso anterior
   modal.showModal();   // showModal() lo abre encima de todo y oscurece el fondo
 }
 
@@ -314,18 +397,18 @@ document.getElementById('form-editar').addEventListener('submit', async (evento)
     disponible: unidades > 0
   };
 
-  const actualizado = await modificarProducto(id, cambios);
-  const aviso = document.getElementById('notificacion-mod');
+  const resultado = await modificarProducto(id, cambios);
 
-  // Si ningún id coincide, Supabase no da error: devuelve un array vacío
-  // y data[0] queda undefined — por eso basta con revisar "actualizado"
-  if (actualizado) {
-    aviso.innerText = 'Producto #' + actualizado.id + ' modificado: ' + actualizado.Nombre;
+  if (resultado.producto) {
+    const actualizado = resultado.producto;
+    document.getElementById('notificacion-mod').innerText =
+      'Producto #' + actualizado.id + ' modificado: ' + actualizado.Nombre;
     modal.close();
     cargarProductos();   // refresca la lista con los datos nuevos
     document.getElementById('resultado-busqueda').innerHTML = '';   // la búsqueda quedó desactualizada
   } else {
-    aviso.innerText = 'No se pudo modificar el producto #' + id + '.';
+    // El modal sigue abierto, así que el aviso va DENTRO de él
+    document.getElementById('aviso-editar').innerText = resultado.error;
   }
 });
 
@@ -333,12 +416,14 @@ document.getElementById('form-editar').addEventListener('submit', async (evento)
 // ===== Eliminar producto =====
 async function eliminarProducto(id) {
 
-  const { error } = await db
+  const { data, error } = await db
     .from('productos_practica')
     .delete()
-    .eq('id', id);
+    .eq('id', id)
+    .select();   // devuelve las filas borradas: si el RLS lo bloquea, llega vacío
 
-  return !error;   // true si NO hubo error (se borró bien), false si falló
+  // true solo si NO hubo error Y de verdad se borró una fila
+  return !error && data.length > 0;
 }
 
 // Borrar no se puede deshacer, así que antes de llamar a eliminarProducto()
