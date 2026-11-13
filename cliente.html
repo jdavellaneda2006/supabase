@@ -9,6 +9,15 @@
     <link rel="stylesheet" href="css/gta6.css" />
   </head>
   <body>
+    <!-- Menú: cada enlace salta a la sección con ese id -->
+    <nav class="barra-superior">
+      <div class="menu">
+        <a href="#panel-cuenta">Mi cuenta</a>
+        <a href="#sec-tienda">Productos tienda</a>
+        <a href="#sec-carrito">Carrito (<span id="contador-carrito">0</span>)</a>
+      </div>
+    </nav>
+
     <header class="encabezado">
       <h1>Mi cuenta<span>Zona de clientes</span></h1>
     </header>
@@ -51,9 +60,32 @@
           <button id="btn-logout" type="button">Cerrar sesión</button>
         </div>
       </section>
+
+      <!-- ===== Productos tienda: las mismas cards que en admin.html,
+           con "Agregar al carrito" en vez de Editar / Eliminar ===== -->
+      <section id="sec-tienda" class="seccion">
+        <h2><span class="num">01</span> Productos tienda</h2>
+        <div id="lista-tienda">
+          <p class="aviso-tienda">Cargando productos…</p>
+        </div>
+      </section>
+
+      <!-- ===== Carrito de compras: lo dibuja pintarCarrito() en tienda.js ===== -->
+      <section id="sec-carrito" class="seccion">
+        <h2><span class="num">02</span> Carrito de compras</h2>
+        <div id="lista-carrito"></div>
+        <div id="resumen-carrito" hidden>
+          <p class="total-carrito">Total: <strong id="total-carrito"></strong></p>
+          <button id="btn-vaciar-carrito" type="button">Vaciar carrito</button>
+        </div>
+      </section>
     </main>
 
     <script src="js/supabaseClient.js"></script>
     <script src="js/cliente.js"></script>
+    <!-- cards.js dibuja las cards (el mismo que usa admin.html);
+         tienda.js lo usa, por eso va antes -->
+    <script src="js/cards.js"></script>
+    <script src="js/tienda.js"></script>
   </body>
 </html>

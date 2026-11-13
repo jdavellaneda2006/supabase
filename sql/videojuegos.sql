@@ -3,7 +3,7 @@
 -- Pégalo completo en Supabase → SQL Editor → Run.
 --
 -- Las carátulas vienen de Wikipedia (upload.wikimedia.org).
--- El descuento va como fracción (0.1 = 10%), igual que en js/prueba.js.
+-- El descuento va como fracción (0.1 = 10%), igual que en js/admin.js.
 -- Se puede ejecutar más de una vez: el INSERT salta los nombres que ya existen.
 
 begin;

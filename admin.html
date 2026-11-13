@@ -13,6 +13,41 @@
   <link rel="stylesheet" href="css/gta6.css">
 </head>
 <body>
+<!-- ===== Acceso: lo único visible hasta que un admin inicia sesión ===== -->
+<section id="zona-acceso-admin">
+  <p id="estado-sesion-admin" role="status">Inicia sesión para gestionar los productos.</p>
+
+  <!-- Primero se ve el login; el registro aparece con su botón -->
+  <form id="form-login-admin">
+    <h3>Iniciar sesión</h3>
+    <label for="admin-login-correo">Correo</label>
+    <input id="admin-login-correo" type="email" required>
+
+    <label for="admin-login-password">Contraseña</label>
+    <input id="admin-login-password" type="password" required>
+
+    <button type="submit">Iniciar sesión</button>
+    <button id="btn-ir-registro" class="btn-enlace" type="button">¿No tienes cuenta? Regístrate</button>
+  </form>
+
+  <form id="form-registro-admin" hidden>
+    <h3>Registrar administrador</h3>
+    <label for="admin-registro-nombre">Nombre</label>
+    <input id="admin-registro-nombre" type="text" required>
+
+    <label for="admin-registro-correo">Correo</label>
+    <input id="admin-registro-correo" type="email" required>
+
+    <label for="admin-registro-password">Contraseña</label>
+    <input id="admin-registro-password" type="password" minlength="6" required>
+
+    <button type="submit">Crear cuenta de administrador</button>
+    <button id="btn-ir-login" class="btn-enlace" type="button">¿Ya tienes cuenta? Inicia sesión</button>
+  </form>
+</section>
+
+<!-- ===== Gestión de productos: oculta hasta comprobar que eres admin ===== -->
+<div id="panel-admin" hidden>
 
   <!-- ===== Barra superior: queda fija arriba al hacer scroll ===== -->
   <nav class="barra-superior">
@@ -22,6 +57,11 @@
       <a href="#sec-buscar">Buscar</a>
       <a href="#sec-catalogo">Catálogo</a>
       <a href="#sec-resumen">Resumen</a>
+    </div>
+    <!-- Quién tiene la sesión y botón para salir -->
+    <div class="sesion-admin">
+      <span id="nombre-admin"></span>
+      <button id="btn-logout-admin" type="button">Cerrar sesión</button>
     </div>
     <!-- Icono VI: abre la ventana "Mi cuenta" (login o datos del cliente) -->
     <button id="btn-cuenta" class="icono-vi" type="button" title="Mi cuenta" aria-label="Mi cuenta">VI</button>
@@ -96,6 +136,7 @@
     </section>
 
   </main>
+</div><!-- /#panel-admin -->
 
   <!-- Ventana "Mi cuenta": la abre el icono VI de la barra superior.
        La lógica está en js/cliente.js -->
@@ -177,6 +218,8 @@
       <label>Descuento %
         <input id="edit-descuento" type="number" min="0" max="100" step="any">
       </label>
+      <!-- Aviso dentro del modal: si se guarda fuera, queda tapado por él -->
+      <p id="aviso-editar" class="aviso-modal"></p>
       <div class="modal-botones">
         <button type="button" id="btn-cancelar">Cancelar</button>
         <button type="submit">Guardar cambios</button>
@@ -199,10 +242,12 @@
   </dialog>
   <!-- supabaseClient.js crea "db" (sección 4.3): el cliente ya
        conectado a tu proyecto de Supabase. Lo vamos a usar en
-       prueba.js, por eso tiene que cargarse ANTES que ese archivo -->
+       admin.js, por eso tiene que cargarse ANTES que ese archivo -->
   <script src="js/supabaseClient.js"></script>
-  <!-- prueba.js: aquí escribes el código de los Pasos 2, 3 y 4 -->
-  <script src="js/prueba.js"></script>
+  <!-- admin.js: aquí escribes el código de los Pasos 2, 3 y 4 -->
+  <!-- cards.js: dibuja las cards de productos (compartido con cliente.html) -->
+  <script src="js/cards.js"></script>
+  <script src="js/admin.js"></script>
   <!-- cliente.js: inicio de sesión y tarjeta "Mis datos" (la misma
        lógica que usa cliente.html) -->
   <script src="js/cliente.js"></script>

@@ -55,7 +55,7 @@ async function registrarCliente(nombre, correo, contrasena) {
 // JavaScript (sin recargar nada), hay que apagar ese comportamiento a
 // propósito.
 // El "?." hace que esta línea no falle en páginas sin formulario de
-// registro (prueba.html solo tiene el de iniciar sesión).
+// registro (admin.html solo tiene el de iniciar sesión).
 document.getElementById('form-registro')?.addEventListener('submit', async (event) => {
 
   // event.preventDefault() le dice al navegador "no hagas lo que harías
@@ -154,7 +154,7 @@ async function mostrarEstadoSesion() {
   document.getElementById('mis-datos').hidden = !data.user;
   cerrarEdicion(); // siempre se vuelve a la vista de datos
 
-  // El icono VI brilla en turquesa mientras hay sesión (solo en prueba.html)
+  // El icono VI brilla en turquesa mientras hay sesión (solo en admin.html)
   document.getElementById('btn-cuenta')?.classList.toggle('con-sesion', Boolean(data.user));
 
   usuarioActual = data.user;
@@ -219,7 +219,7 @@ function pintarMisDatos(cliente, usuario) {
 
 // ===== UPDATE: editar los datos del cliente =====
 
-// Igual que modificarProducto() en prueba.js: .update() con los cambios y
+// Igual que modificarProducto() en admin.js: .update() con los cambios y
 // .eq() para elegir la fila. Aquí la fila se busca por auth_id (el uuid de
 // la sesión), no por id, y la política de RLS solo deja tocar la propia.
 async function actualizarCliente(authId, cambios) {
@@ -296,7 +296,7 @@ document.getElementById('form-editar-cliente')?.addEventListener('submit', async
   }
 });
 
-// ===== Ventana "Mi cuenta" (icono VI de la barra superior, prueba.html) =====
+// ===== Ventana "Mi cuenta" (icono VI de la barra superior, admin.html) =====
 const modalCuenta = document.getElementById('modal-cuenta');
 
 document.getElementById('btn-cuenta')?.addEventListener('click', () => {
